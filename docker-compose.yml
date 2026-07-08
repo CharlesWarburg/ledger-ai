@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
 
     environment:
-      POSTGRES_USER: ledger
-      POSTGRES_PASSWORD: ledgerpassword
-      POSTGRES_DB: ledger_ai
+      POSTGRES_USER: ${POSTGRES_USER:-ledger}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-3pK9vTq8Lm2xN7sR4aW6cY1u}
+      POSTGRES_DB: ${POSTGRES_DB:-ledger_ai}
 
     ports:
       - "5432:5432"
