@@ -8,9 +8,9 @@ Ledger AI is an early-stage accounting application intended to combine customer,
 - Backend: Python, FastAPI 0.128.8, SQLAlchemy 2.0.51, Pydantic Settings 2.11.0, Uvicorn 0.39.0
 - Database: PostgreSQL 16 with `psycopg2-binary` 2.9.12
 - Infrastructure: Docker Compose for the development database
-- Migration tooling: Alembic 1.16.5 is installed in the current local virtual environment, but it has not been configured in the repository
+- Migration tooling: Alembic 1.16.5 configured against SQLAlchemy metadata
 
-The backend currently has no committed dependency manifest. The Python versions above describe the audited local virtual environment, not a reproducible project lockfile.
+Direct backend dependencies are pinned in `backend/requirements.txt`.
 
 ## Architecture
 
@@ -30,6 +30,9 @@ The `api`, `repositories`, `schemas`, and `services` backend directories exist b
 - `GET /db-health` database connectivity endpoint
 - SQLAlchemy engine, session factory, declarative base, and FastAPI database dependency
 - Environment-based backend database URL loading
+- Safe environment examples for Docker Compose and the backend
+- Alembic migration environment ready for the first model
+- Configurable application lifecycle and HTTP access logging
 - Docker Compose PostgreSQL service with persistent storage
 
 No authentication, customer, invoice, payment, dashboard, upload, AI, or reporting features exist yet.
@@ -38,17 +41,17 @@ No authentication, customer, invoice, payment, dashboard, upload, AI, or reporti
 
 Legend: ✅ completed · 🚧 in progress · ⬜ not started
 
-- 🚧 Phase 1 — Foundation
+- ✅ Phase 1 — Foundation
   - ✅ Repository
   - ✅ Next.js setup
   - ✅ FastAPI setup
-  - 🚧 Docker Compose (database only; frontend and backend are not containerized)
+  - ✅ Docker Compose
   - ✅ PostgreSQL service configuration
   - ✅ SQLAlchemy setup
   - ✅ Database connection and health check
-  - ⬜ Alembic configuration and migrations
-  - 🚧 Environment configuration (runtime loading exists; examples and validation documentation do not)
-  - ⬜ Application logging
+  - ✅ Alembic configuration (the first revision will accompany the first model)
+  - ✅ Environment configuration
+  - ✅ Application logging
 - ⬜ Phase 2 — Authentication
 - ⬜ Phase 3 — Customers CRUD
 - ⬜ Phase 4 — Invoices CRUD, status, VAT, and due dates
@@ -67,19 +70,20 @@ See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the detailed audit, current task,
 
 Prerequisites: Docker with Compose, Node.js/npm, and Python 3.9 or newer. The existing local backend environment uses Python 3.9.
 
-1. Start PostgreSQL from the repository root:
+1. Create the local environment files from the committed examples:
+
+   ```bash
+   cp .env.example .env
+   cp backend/.env.example backend/.env
+   ```
+
+   Replace `change_me` in both files with the same local PostgreSQL password. The root `.env` configures the PostgreSQL container, while `backend/.env` configures FastAPI, SQLAlchemy, and Alembic. Do not commit either local `.env` file.
+
+2. Start PostgreSQL from the repository root:
 
    ```bash
    docker compose up -d postgres
    ```
-
-2. Configure the backend. There is currently no committed `.env.example`; create `backend/.env` with a SQLAlchemy URL matching the Compose database:
-
-   ```dotenv
-   DATABASE_URL=postgresql+psycopg2://ledger:<password>@localhost:5433/ledger_ai
-   ```
-
-   If you override the Compose credentials, keep the URL consistent. Do not commit the `.env` file.
 
 3. Create the backend environment and install the currently required packages:
 
@@ -87,7 +91,8 @@ Prerequisites: Docker with Compose, Node.js/npm, and Python 3.9 or newer. The ex
    cd backend
    python3 -m venv .venv
    source .venv/bin/activate
-   pip install fastapi==0.128.8 uvicorn==0.39.0 SQLAlchemy==2.0.51 psycopg2-binary==2.9.12 pydantic-settings==2.11.0
+   pip install -r requirements.txt
+   alembic upgrade head
    uvicorn app.main:app --reload
    ```
 
@@ -120,18 +125,23 @@ The frontend production build currently needs access to Google Fonts because the
 ```text
 ledger-ai/
 ├── backend/
-│   └── app/
-│       ├── api/             # Empty placeholder
-│       ├── core/
-│       │   └── config.py    # Pydantic environment settings
-│       ├── db/
-│       │   └── database.py  # SQLAlchemy engine and sessions
-│       ├── models/
-│       │   └── user.py      # Empty placeholder
-│       ├── repositories/    # Empty placeholder
-│       ├── schemas/         # Empty placeholder
-│       ├── services/        # Empty placeholder
-│       └── main.py          # FastAPI app and two health routes
+│   ├── alembic/             # Migration environment and future revisions
+│   ├── app/
+│   │   ├── api/             # Empty placeholder
+│   │   ├── core/
+│   │   │   ├── config.py    # Pydantic environment settings
+│   │   │   └── logging.py   # Application logging configuration
+│   │   ├── db/
+│   │   │   └── database.py  # SQLAlchemy engine and sessions
+│   │   ├── models/
+│   │   │   └── user.py      # Empty placeholder
+│   │   ├── repositories/    # Empty placeholder
+│   │   ├── schemas/         # Empty placeholder
+│   │   ├── services/        # Empty placeholder
+│   │   └── main.py          # FastAPI app and two health routes
+│   ├── .env.example
+│   ├── alembic.ini
+│   └── requirements.txt
 ├── frontend/
 │   ├── public/              # Generated starter assets
 │   └── src/app/             # App Router layout, page, and global CSS
@@ -144,7 +154,7 @@ Ignored local items such as `backend/.env`, `backend/.venv`, `node_modules`, and
 
 ## Development phases
 
-The project is currently in Phase 1. The next implementation task is to make the backend reproducible and migration-ready: commit a dependency manifest, add safe environment examples, configure Alembic, and create an initial migration only after defining the first real model. Phase 2 authentication should begin after those foundation gaps and basic automated tests are in place.
+Phase 1 is complete. The next implementation task is Phase 2 authentication, beginning with the SQLAlchemy `User` model and its first Alembic revision, followed by password hashing, JWT handling, authentication endpoints, protected routes, and roles.
 
 ## Future work
 

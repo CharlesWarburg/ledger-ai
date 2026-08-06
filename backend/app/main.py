@@ -1,10 +1,30 @@
-from fastapi import FastAPI, Depends
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.logging import configure_logging
 from app.db.database import get_db
 
-app = FastAPI(title="Ledger AI API")
+configure_logging()
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logger.info(
+        "Application starting | app=%s environment=%s",
+        settings.app_name,
+        settings.environment,
+    )
+    yield
+    logger.info("Application stopping | app=%s", settings.app_name)
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 
 @app.get("/health")
