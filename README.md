@@ -20,7 +20,7 @@ The repository is split into two applications:
 - `backend/` is a synchronous FastAPI application. Configuration is loaded from `backend/.env`; SQLAlchemy provides an engine, session factory, declarative base, and request-scoped database dependency. The API currently consists of direct route handlers in `app/main.py`.
 - PostgreSQL runs separately through the root `docker-compose.yml` and publishes container port `5432` on host port `5433`.
 
-The `api`, `repositories`, `schemas`, and `services` backend directories exist but are empty. No layered business architecture has been implemented yet.
+The authentication slice uses API, service, repository, schema, and model layers. Other business domains have not been implemented yet.
 
 ## Features completed
 
@@ -38,6 +38,9 @@ The `api`, `repositories`, `schemas`, and `services` backend directories exist b
 - Argon2id password hashing and verification
 - Validated registration, login, and safe user-response schemas
 - Signed JWT access-token creation and strict validation
+- User registration with duplicate-email protection
+- User login with bearer access-token issuance
+- Authenticated current-user lookup and reusable route protection
 
 Authentication endpoints and security logic are not implemented yet. Customer, invoice, payment, dashboard, upload, AI, and reporting features also remain unstarted.
 
@@ -62,10 +65,10 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Password hashing
   - ✅ Authentication request and response schemas
   - ✅ JWT creation and validation
-  - ⬜ Register endpoint
-  - ⬜ Login endpoint
-  - ⬜ Current user endpoint
-  - ⬜ Protected-route dependency
+  - ✅ Register endpoint
+  - ✅ Login endpoint
+  - ✅ Current user endpoint
+  - ✅ Protected-route dependency
   - 🚧 Roles (stored on users; authorization enforcement not implemented)
 - ⬜ Phase 3 — Customers CRUD
 - ⬜ Phase 4 — Invoices CRUD, status, VAT, and due dates
@@ -141,7 +144,7 @@ ledger-ai/
 ├── backend/
 │   ├── alembic/             # Migration environment and future revisions
 │   ├── app/
-│   │   ├── api/             # Empty placeholder
+│   │   ├── api/             # Authentication HTTP routes
 │   │   ├── core/
 │   │   │   ├── config.py    # Pydantic environment settings
 │   │   │   └── logging.py   # Application logging configuration
@@ -149,9 +152,9 @@ ledger-ai/
 │   │   │   └── database.py  # SQLAlchemy engine and sessions
 │   │   ├── models/
 │   │   │   └── user.py      # Empty placeholder
-│   │   ├── repositories/    # Empty placeholder
+│   │   ├── repositories/    # User database access
 │   │   ├── schemas/         # Empty placeholder
-│   │   ├── services/        # Empty placeholder
+│   │   ├── services/        # Authentication business logic
 │   │   └── main.py          # FastAPI app and two health routes
 │   ├── .env.example
 │   ├── alembic.ini
@@ -168,7 +171,7 @@ Ignored local items such as `backend/.env`, `backend/.venv`, `node_modules`, and
 
 ## Development phases
 
-Phase 1 is complete, and Phase 2 authentication is in progress. The User model, initial migration, Argon2id password hashing, authentication schemas, and JWT handling are complete. The next implementation task is registration, followed by login, current-user lookup, protected routes, and role enforcement.
+Phase 1 is complete, and Phase 2 authentication is in progress. The User model, initial migration, password hashing, schemas, JWT handling, registration, login, current-user lookup, and protected-route dependency are complete. The remaining authentication task is role enforcement.
 
 ## Future work
 

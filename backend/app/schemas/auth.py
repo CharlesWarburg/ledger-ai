@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -23,6 +24,12 @@ class UserRegister(EmailSchema):
 
 class UserLogin(EmailSchema):
     password: str = Field(min_length=1, max_length=128)
+
+
+class AccessTokenResponse(BaseModel):
+    access_token: str
+    token_type: Literal["bearer"] = "bearer"
+    expires_in: int
 
 
 class UserResponse(EmailSchema):
