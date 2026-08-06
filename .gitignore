@@ -95,3 +95,6 @@ coverage/
 dist/
 tmp/
 temp/
+
+# Markdown
+*.md
