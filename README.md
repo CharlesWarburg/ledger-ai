@@ -34,8 +34,11 @@ The `api`, `repositories`, `schemas`, and `services` backend directories exist b
 - Alembic migration environment ready for the first model
 - Configurable application lifecycle and HTTP access logging
 - Docker Compose PostgreSQL service with persistent storage
+- User persistence model and initial database migration
+- Argon2id password hashing and verification
+- Validated registration, login, and safe user-response schemas
 
-No authentication, customer, invoice, payment, dashboard, upload, AI, or reporting features exist yet.
+Authentication endpoints and security logic are not implemented yet. Customer, invoice, payment, dashboard, upload, AI, and reporting features also remain unstarted.
 
 ## Roadmap
 
@@ -52,7 +55,17 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Alembic configuration (the first revision will accompany the first model)
   - ✅ Environment configuration
   - ✅ Application logging
-- ⬜ Phase 2 — Authentication
+- 🚧 Phase 2 — Authentication
+  - ✅ User SQLAlchemy model
+  - ✅ Initial users-table migration
+  - ✅ Password hashing
+  - ✅ Authentication request and response schemas
+  - ⬜ JWT creation and validation
+  - ⬜ Register endpoint
+  - ⬜ Login endpoint
+  - ⬜ Current user endpoint
+  - ⬜ Protected-route dependency
+  - 🚧 Roles (stored on users; authorization enforcement not implemented)
 - ⬜ Phase 3 — Customers CRUD
 - ⬜ Phase 4 — Invoices CRUD, status, VAT, and due dates
 - ⬜ Phase 5 — Payments, partial payments, and outstanding balances
@@ -154,7 +167,7 @@ Ignored local items such as `backend/.env`, `backend/.venv`, `node_modules`, and
 
 ## Development phases
 
-Phase 1 is complete. The next implementation task is Phase 2 authentication, beginning with the SQLAlchemy `User` model and its first Alembic revision, followed by password hashing, JWT handling, authentication endpoints, protected routes, and roles.
+Phase 1 is complete, and Phase 2 authentication is in progress. The User model, initial migration, Argon2id password hashing, and authentication schemas are complete. The next implementation task is JWT handling, followed by registration, login, current-user lookup, protected routes, and role enforcement.
 
 ## Future work
 
