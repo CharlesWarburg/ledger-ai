@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import TokenValidationError, validate_access_token
 from app.db.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.repositories.user import get_user_by_id
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -36,4 +36,13 @@ def get_current_user(
     if user is None or not user.is_active:
         raise _unauthorized()
 
+    return user
+
+
+def require_admin(user: User = Depends(get_current_user)) -> User:
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator access required",
+        )
     return user

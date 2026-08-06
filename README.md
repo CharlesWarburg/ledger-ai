@@ -59,7 +59,7 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Alembic configuration (the first revision will accompany the first model)
   - ✅ Environment configuration
   - ✅ Application logging
-- 🚧 Phase 2 — Authentication
+- ✅ Phase 2 — Authentication
   - ✅ User SQLAlchemy model
   - ✅ Initial users-table migration
   - ✅ Password hashing
@@ -69,7 +69,7 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Login endpoint
   - ✅ Current user endpoint
   - ✅ Protected-route dependency
-  - 🚧 Roles (stored on users; authorization enforcement not implemented)
+  - ✅ Roles and administrator-route enforcement
 - ⬜ Phase 3 — Customers CRUD
 - ⬜ Phase 4 — Invoices CRUD, status, VAT, and due dates
 - ⬜ Phase 5 — Payments, partial payments, and outstanding balances
@@ -171,7 +171,7 @@ Ignored local items such as `backend/.env`, `backend/.venv`, `node_modules`, and
 
 ## Development phases
 
-Phase 1 is complete, and Phase 2 authentication is in progress. The User model, initial migration, password hashing, schemas, JWT handling, registration, login, current-user lookup, and protected-route dependency are complete. The remaining authentication task is role enforcement.
+Phases 1 and 2 are complete. The next implementation phase is Phase 3, beginning with the Customer model and migration, followed by Customer CRUD schemas, repository/service operations, protected API routes, and ownership enforcement.
 
 ## Future work
 
