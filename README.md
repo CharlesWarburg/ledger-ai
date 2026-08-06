@@ -37,6 +37,7 @@ The `api`, `repositories`, `schemas`, and `services` backend directories exist b
 - User persistence model and initial database migration
 - Argon2id password hashing and verification
 - Validated registration, login, and safe user-response schemas
+- Signed JWT access-token creation and strict validation
 
 Authentication endpoints and security logic are not implemented yet. Customer, invoice, payment, dashboard, upload, AI, and reporting features also remain unstarted.
 
@@ -60,7 +61,7 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Initial users-table migration
   - ✅ Password hashing
   - ✅ Authentication request and response schemas
-  - ⬜ JWT creation and validation
+  - ✅ JWT creation and validation
   - ⬜ Register endpoint
   - ⬜ Login endpoint
   - ⬜ Current user endpoint
@@ -167,7 +168,7 @@ Ignored local items such as `backend/.env`, `backend/.venv`, `node_modules`, and
 
 ## Development phases
 
-Phase 1 is complete, and Phase 2 authentication is in progress. The User model, initial migration, Argon2id password hashing, and authentication schemas are complete. The next implementation task is JWT handling, followed by registration, login, current-user lookup, protected routes, and role enforcement.
+Phase 1 is complete, and Phase 2 authentication is in progress. The User model, initial migration, Argon2id password hashing, authentication schemas, and JWT handling are complete. The next implementation task is registration, followed by login, current-user lookup, protected routes, and role enforcement.
 
 ## Future work
 
