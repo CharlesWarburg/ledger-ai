@@ -24,6 +24,7 @@ from app.db.database import Base
 
 if TYPE_CHECKING:
     from app.models.customer import Customer
+    from app.models.document import Document
     from app.models.payment import Payment
     from app.models.user import User
 
@@ -138,6 +139,11 @@ class Invoice(Base):
         back_populates="invoice",
         passive_deletes=True,
         order_by="Payment.payment_date",
+    )
+    documents: Mapped[list["Document"]] = relationship(
+        back_populates="invoice",
+        passive_deletes=True,
+        order_by="Document.created_at",
     )
 
 
