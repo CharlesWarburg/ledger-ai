@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
 if TYPE_CHECKING:
+    from app.models.invoice import Invoice
     from app.models.user import User
 
 
@@ -87,4 +88,8 @@ class Customer(Base):
 
     owner: Mapped["User"] = relationship(
         back_populates="customers",
+    )
+    invoices: Mapped[list["Invoice"]] = relationship(
+        back_populates="customer",
+        passive_deletes=True,
     )

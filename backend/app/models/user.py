@@ -8,6 +8,7 @@ from app.db.database import Base
 
 if TYPE_CHECKING:
     from app.models.customer import Customer
+    from app.models.invoice import Invoice
 
 
 class UserRole(str, enum.Enum):
@@ -66,4 +67,8 @@ class User(Base):
     customers: Mapped[list["Customer"]] = relationship(
         back_populates="owner",
         passive_deletes=True,
-)
+    )
+    invoices: Mapped[list["Invoice"]] = relationship(
+        back_populates="owner",
+        passive_deletes=True,
+    )
