@@ -13,6 +13,13 @@ from app.repositories.dashboard import (
     list_recent_invoice_activity,
     list_recent_payment_activity,
 )
+from app.repositories.document import (
+    add_document_record,
+    delete_document_record,
+    get_document_record,
+    list_document_records,
+    update_document_record,
+)
 from app.repositories.invoice import (
     add_invoice_record,
     delete_invoice_record,
@@ -35,14 +42,17 @@ from app.repositories.user import add_user, get_user_by_email, get_user_by_id
 
 __all__ = [
     "add_customer_record",
+    "add_document_record",
     "add_invoice_record",
     "add_payment_record",
     "add_user",
     "delete_customer_record",
+    "delete_document_record",
     "delete_invoice_record",
     "delete_payment_record",
     "get_balance_totals",
     "get_customer_record",
+    "get_document_record",
     "get_invoice_record",
     "get_invoice_status_metrics",
     "get_invoice_for_payment",
@@ -57,9 +67,11 @@ __all__ = [
     "list_recent_invoice_activity",
     "list_recent_payment_activity",
     "list_customer_records",
+    "list_document_records",
     "replace_invoice_line_items",
     "total_paid_for_invoice",
     "update_customer_record",
+    "update_document_record",
     "update_invoice_record",
     "update_payment_record",
 ]

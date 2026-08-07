@@ -167,3 +167,16 @@ def delete_stored_upload(
         path.unlink(missing_ok=True)
     except OSError as exc:
         raise FileStorageError("Stored file could not be deleted") from exc
+
+
+def read_stored_upload(
+    storage_key: str,
+    upload_directory: Optional[Path] = None,
+) -> bytes:
+    path = _storage_path(storage_key, upload_directory)
+    try:
+        return path.read_bytes()
+    except FileNotFoundError as exc:
+        raise FileStorageError("Stored file could not be found") from exc
+    except OSError as exc:
+        raise FileStorageError("Stored file could not be read") from exc
