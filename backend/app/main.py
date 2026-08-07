@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.auth import router as auth_router
 from app.api.customers import router as customers_router
+from app.api.invoices import router as invoices_router
 from app.core.config import settings
 from app.core.logging import configure_logging
 from app.db.database import get_db
@@ -29,6 +30,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(customers_router)
+app.include_router(invoices_router)
 
 
 @app.get("/health")

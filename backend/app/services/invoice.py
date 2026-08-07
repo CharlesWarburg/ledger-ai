@@ -6,7 +6,7 @@ from typing import Optional, Sequence
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.models.invoice import Invoice
+from app.models.invoice import Invoice, InvoiceStatus
 from app.repositories.customer import get_customer_record
 from app.repositories.invoice import (
     add_invoice_record,
@@ -37,6 +37,26 @@ class InvoiceNumberAlreadyExistsError(ValueError):
 
 class InvoiceDateError(ValueError):
     pass
+
+
+class InvalidInvoiceStatusTransitionError(ValueError):
+    pass
+
+
+ALLOWED_STATUS_TRANSITIONS: dict[InvoiceStatus, set[InvoiceStatus]] = {
+    InvoiceStatus.DRAFT: {InvoiceStatus.SENT, InvoiceStatus.CANCELLED},
+    InvoiceStatus.SENT: {
+        InvoiceStatus.PAID,
+        InvoiceStatus.OVERDUE,
+        InvoiceStatus.CANCELLED,
+    },
+    InvoiceStatus.OVERDUE: {
+        InvoiceStatus.PAID,
+        InvoiceStatus.CANCELLED,
+    },
+    InvoiceStatus.PAID: set(),
+    InvoiceStatus.CANCELLED: set(),
+}
 
 
 def _round_money(value: Decimal) -> Decimal:
@@ -217,6 +237,32 @@ def update_invoice(
         db,
         owner_id,
         invoice_number,
+        exclude_invoice_id=invoice.id,
+    )
+    db.refresh(invoice)
+    return invoice
+
+
+def update_invoice_status(
+    db: Session,
+    owner_id: uuid.UUID,
+    invoice_id: uuid.UUID,
+    new_status: InvoiceStatus,
+) -> Invoice:
+    invoice = get_invoice(db, owner_id, invoice_id)
+    if new_status == invoice.status:
+        return invoice
+    if new_status not in ALLOWED_STATUS_TRANSITIONS[invoice.status]:
+        raise InvalidInvoiceStatusTransitionError(
+            f"Cannot change invoice status from "
+            f"{invoice.status.value} to {new_status.value}"
+        )
+
+    update_invoice_record(invoice, {"status": new_status})
+    _commit_invoice(
+        db,
+        owner_id,
+        invoice.invoice_number,
         exclude_invoice_id=invoice.id,
     )
     db.refresh(invoice)

@@ -13,6 +13,7 @@ from app.services.customer import (
     update_customer,
 )
 from app.services.invoice import (
+    InvalidInvoiceStatusTransitionError,
     InvoiceCustomerNotFoundError,
     InvoiceDateError,
     InvoiceNotFoundError,
@@ -23,12 +24,14 @@ from app.services.invoice import (
     get_invoice,
     list_invoices,
     update_invoice,
+    update_invoice_status,
 )
 
 __all__ = [
     "EmailAlreadyRegisteredError",
     "InvalidCredentialsError",
     "CustomerNotFoundError",
+    "InvalidInvoiceStatusTransitionError",
     "InvoiceCustomerNotFoundError",
     "InvoiceDateError",
     "InvoiceNotFoundError",
@@ -46,4 +49,5 @@ __all__ = [
     "register_user",
     "update_customer",
     "update_invoice",
+    "update_invoice_status",
 ]
