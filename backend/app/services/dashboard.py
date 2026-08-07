@@ -64,6 +64,35 @@ def _reporting_period(months: int, as_of_date: date) -> tuple[date, date]:
     return _shift_month(current_month, -(months - 1)), as_of_date
 
 
+def _resolve_reporting_period(
+    months: int,
+    as_of_date: date,
+    date_from: Optional[date],
+    date_to: Optional[date],
+) -> tuple[date, date]:
+    if (date_from is None) != (date_to is None):
+        raise DashboardPeriodError(
+            "Dashboard date_from and date_to must be supplied together"
+        )
+    if date_from is None or date_to is None:
+        return _reporting_period(months, as_of_date)
+    if date_to < date_from:
+        raise DashboardPeriodError(
+            "Dashboard period end cannot be before its start"
+        )
+    month_span = (
+        (date_to.year - date_from.year) * 12
+        + date_to.month
+        - date_from.month
+        + 1
+    )
+    if month_span > MAX_DASHBOARD_MONTHS:
+        raise DashboardPeriodError(
+            f"Dashboard date range cannot exceed {MAX_DASHBOARD_MONTHS} months"
+        )
+    return date_from, date_to
+
+
 def _complete_status_metrics(
     raw_metrics: list[tuple[InvoiceStatus, int, Decimal]],
 ) -> list[InvoiceStatusMetric]:
@@ -108,6 +137,10 @@ def get_dashboard(
     months: int = 12,
     recent_activity_limit: int = 10,
     as_of_date: Optional[date] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> DashboardResponse:
     if not MIN_RECENT_ACTIVITY_LIMIT <= recent_activity_limit <= MAX_RECENT_ACTIVITY_LIMIT:
         raise DashboardActivityLimitError(
@@ -117,24 +150,52 @@ def get_dashboard(
 
     normalized_currency = _normalize_currency(currency)
     effective_date = as_of_date or date.today()
-    period_start, period_end = _reporting_period(months, effective_date)
+    period_start, period_end = _resolve_reporting_period(
+        months,
+        effective_date,
+        date_from,
+        date_to,
+    )
 
     total_revenue = get_revenue_total(
-        db, owner_id, normalized_currency, period_start, period_end
+        db,
+        owner_id,
+        normalized_currency,
+        period_start,
+        period_end,
+        invoice_status=invoice_status,
+        customer_id=customer_id,
     )
     outstanding_amount, overdue_amount = get_balance_totals(
-        db, owner_id, normalized_currency, period_end
+        db,
+        owner_id,
+        normalized_currency,
+        period_end,
+        invoice_status=invoice_status,
+        customer_id=customer_id,
     )
     status_metrics = _complete_status_metrics(
         get_invoice_status_metrics(
-            db, owner_id, normalized_currency, period_start, period_end
+            db,
+            owner_id,
+            normalized_currency,
+            period_start,
+            period_end,
+            invoice_status=invoice_status,
+            customer_id=customer_id,
         )
     )
     monthly_cash_flow = _complete_cash_flow(
         period_start,
         period_end,
         get_monthly_cash_flow(
-            db, owner_id, normalized_currency, period_start, period_end
+            db,
+            owner_id,
+            normalized_currency,
+            period_start,
+            period_end,
+            invoice_status=invoice_status,
+            customer_id=customer_id,
         ),
     )
 
@@ -145,6 +206,8 @@ def get_dashboard(
         period_start,
         period_end,
         limit=recent_activity_limit,
+        invoice_status=invoice_status,
+        customer_id=customer_id,
     )
     payments = list_recent_payment_activity(
         db,
@@ -153,6 +216,8 @@ def get_dashboard(
         period_start,
         period_end,
         limit=recent_activity_limit,
+        invoice_status=invoice_status,
+        customer_id=customer_id,
     )
     recent_activity = [
         RecentActivityItem(

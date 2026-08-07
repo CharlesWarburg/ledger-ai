@@ -1,6 +1,7 @@
 import uuid
 from datetime import date, datetime, time, timezone
 from decimal import Decimal
+from typing import Optional
 
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
@@ -17,6 +18,8 @@ def get_revenue_total(
     currency: str,
     period_start: date,
     period_end: date,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> Decimal:
     statement = (
         select(func.coalesce(func.sum(Payment.amount), 0))
@@ -28,6 +31,10 @@ def get_revenue_total(
             Payment.payment_date <= period_end,
         )
     )
+    if invoice_status is not None:
+        statement = statement.where(Invoice.status == invoice_status)
+    if customer_id is not None:
+        statement = statement.where(Invoice.customer_id == customer_id)
     return Decimal(db.scalar(statement) or 0)
 
 
@@ -36,6 +43,8 @@ def get_balance_totals(
     owner_id: uuid.UUID,
     currency: str,
     as_of_date: date,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> tuple[Decimal, Decimal]:
     payment_totals = (
         select(
@@ -77,6 +86,10 @@ def get_balance_totals(
             Invoice.status != InvoiceStatus.CANCELLED,
         )
     )
+    if invoice_status is not None:
+        statement = statement.where(Invoice.status == invoice_status)
+    if customer_id is not None:
+        statement = statement.where(Invoice.customer_id == customer_id)
     outstanding, overdue = db.execute(statement).one()
     return Decimal(outstanding or 0), Decimal(overdue or 0)
 
@@ -87,6 +100,8 @@ def get_invoice_status_metrics(
     currency: str,
     period_start: date,
     period_end: date,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> list[tuple[InvoiceStatus, int, Decimal]]:
     statement = (
         select(
@@ -103,6 +118,10 @@ def get_invoice_status_metrics(
         .group_by(Invoice.status)
         .order_by(Invoice.status)
     )
+    if invoice_status is not None:
+        statement = statement.where(Invoice.status == invoice_status)
+    if customer_id is not None:
+        statement = statement.where(Invoice.customer_id == customer_id)
     return [
         (status, int(count), Decimal(total or 0))
         for status, count, total in db.execute(statement).all()
@@ -115,6 +134,8 @@ def get_monthly_cash_flow(
     currency: str,
     period_start: date,
     period_end: date,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> list[tuple[date, Decimal]]:
     month = func.date_trunc("month", Payment.payment_date).label("month")
     statement = (
@@ -129,6 +150,10 @@ def get_monthly_cash_flow(
         .group_by(month)
         .order_by(month)
     )
+    if invoice_status is not None:
+        statement = statement.where(Invoice.status == invoice_status)
+    if customer_id is not None:
+        statement = statement.where(Invoice.customer_id == customer_id)
     return [
         (month_value.date(), Decimal(amount or 0))
         for month_value, amount in db.execute(statement).all()
@@ -142,6 +167,8 @@ def list_recent_invoice_activity(
     period_start: date,
     period_end: date,
     limit: int = 10,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> list[Invoice]:
     start_at = datetime.combine(period_start, time.min, tzinfo=timezone.utc)
     end_at = datetime.combine(period_end, time.max, tzinfo=timezone.utc)
@@ -156,6 +183,10 @@ def list_recent_invoice_activity(
         .order_by(Invoice.created_at.desc())
         .limit(limit)
     )
+    if invoice_status is not None:
+        statement = statement.where(Invoice.status == invoice_status)
+    if customer_id is not None:
+        statement = statement.where(Invoice.customer_id == customer_id)
     return list(db.scalars(statement).all())
 
 
@@ -166,6 +197,8 @@ def list_recent_payment_activity(
     period_start: date,
     period_end: date,
     limit: int = 10,
+    invoice_status: Optional[InvoiceStatus] = None,
+    customer_id: Optional[uuid.UUID] = None,
 ) -> list[Payment]:
     start_at = datetime.combine(period_start, time.min, tzinfo=timezone.utc)
     end_at = datetime.combine(period_end, time.max, tzinfo=timezone.utc)
@@ -181,4 +214,8 @@ def list_recent_payment_activity(
         .order_by(Payment.created_at.desc())
         .limit(limit)
     )
+    if invoice_status is not None:
+        statement = statement.where(Invoice.status == invoice_status)
+    if customer_id is not None:
+        statement = statement.where(Invoice.customer_id == customer_id)
     return list(db.scalars(statement).all())
