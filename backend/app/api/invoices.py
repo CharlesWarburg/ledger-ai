@@ -1,4 +1,6 @@
 import uuid
+from datetime import date
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -6,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_current_user
 from app.db.database import get_db
 from app.models.user import User
+from app.models.invoice import InvoiceStatus
 from app.schemas.invoice import (
     InvoiceCreate,
     InvoiceResponse,
@@ -16,6 +19,7 @@ from app.services.invoice import (
     InvalidInvoiceStatusTransitionError,
     InvoiceCustomerNotFoundError,
     InvoiceDateError,
+    InvoiceFilterDateError,
     InvoiceNotFoundError,
     InvoiceNumberAlreadyExistsError,
     create_invoice,
@@ -89,15 +93,38 @@ def create_invoice_endpoint(
 def list_invoices_endpoint(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=100),
+    status_filter: Optional[InvoiceStatus] = Query(default=None, alias="status"),
+    currency: Optional[str] = Query(
+        default=None,
+        min_length=3,
+        max_length=3,
+        pattern=r"^[A-Za-z]{3}$",
+    ),
+    issue_date_from: Optional[date] = None,
+    issue_date_to: Optional[date] = None,
+    has_balance: Optional[bool] = None,
+    overdue_only: bool = False,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[InvoiceResponse]:
-    invoices = list_invoices(
-        db,
-        current_user.id,
-        offset=offset,
-        limit=limit,
-    )
+    try:
+        invoices = list_invoices(
+            db,
+            current_user.id,
+            offset=offset,
+            limit=limit,
+            status=status_filter,
+            currency=currency,
+            issue_date_from=issue_date_from,
+            issue_date_to=issue_date_to,
+            has_balance=has_balance,
+            overdue_only=overdue_only,
+        )
+    except InvoiceFilterDateError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
     return [InvoiceResponse.model_validate(invoice) for invoice in invoices]
 
 

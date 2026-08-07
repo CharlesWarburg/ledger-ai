@@ -1,4 +1,6 @@
 import uuid
+from datetime import date
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -10,12 +12,14 @@ from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentUpdate
 from app.services.payment import (
     PaymentDateError,
     PaymentExceedsOutstandingBalanceError,
+    PaymentFilterDateError,
     PaymentInvoiceNotFoundError,
     PaymentInvoiceStatusError,
     PaymentNotFoundError,
     create_payment,
     delete_payment,
     get_payment,
+    list_all_payments,
     list_payments,
     update_payment,
 )
@@ -44,7 +48,7 @@ def _payment_conflict(exc: ValueError) -> HTTPException:
     )
 
 
-def _invalid_payment_date(exc: PaymentDateError) -> HTTPException:
+def _invalid_payment_date(exc: ValueError) -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         detail=str(exc),
@@ -89,6 +93,8 @@ def list_payments_endpoint(
     invoice_id: uuid.UUID,
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=100),
+    payment_date_from: Optional[date] = None,
+    payment_date_to: Optional[date] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[PaymentResponse]:
@@ -99,9 +105,43 @@ def list_payments_endpoint(
             invoice_id,
             offset=offset,
             limit=limit,
+            payment_date_from=payment_date_from,
+            payment_date_to=payment_date_to,
         )
     except PaymentInvoiceNotFoundError as exc:
         raise _invoice_not_found() from exc
+    except PaymentFilterDateError as exc:
+        raise _invalid_payment_date(exc) from exc
+    return [PaymentResponse.model_validate(payment) for payment in payments]
+
+
+@router.get("/payments", response_model=list[PaymentResponse])
+def list_all_payments_endpoint(
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=100),
+    currency: Optional[str] = Query(
+        default=None,
+        min_length=3,
+        max_length=3,
+        pattern=r"^[A-Za-z]{3}$",
+    ),
+    payment_date_from: Optional[date] = None,
+    payment_date_to: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[PaymentResponse]:
+    try:
+        payments = list_all_payments(
+            db,
+            current_user.id,
+            offset=offset,
+            limit=limit,
+            currency=currency,
+            payment_date_from=payment_date_from,
+            payment_date_to=payment_date_to,
+        )
+    except PaymentFilterDateError as exc:
+        raise _invalid_payment_date(exc) from exc
     return [PaymentResponse.model_validate(payment) for payment in payments]
 
 

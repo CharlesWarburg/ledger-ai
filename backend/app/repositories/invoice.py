@@ -1,10 +1,12 @@
 import uuid
+from datetime import date
 from typing import Mapping, Optional, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models.invoice import Invoice, InvoiceLineItem
+from app.models.invoice import Invoice, InvoiceLineItem, InvoiceStatus
+from app.models.payment import Payment
 
 
 def invoice_number_exists(
@@ -45,12 +47,59 @@ def list_invoice_records(
     owner_id: uuid.UUID,
     offset: int = 0,
     limit: int = 100,
+    status: Optional[InvoiceStatus] = None,
+    currency: Optional[str] = None,
+    issue_date_from: Optional[date] = None,
+    issue_date_to: Optional[date] = None,
+    has_balance: Optional[bool] = None,
+    overdue_only: bool = False,
+    as_of_date: Optional[date] = None,
 ) -> list[Invoice]:
+    payment_totals = (
+        select(
+            Payment.invoice_id.label("invoice_id"),
+            func.sum(Payment.amount).label("total_paid"),
+        )
+        .where(Payment.owner_id == owner_id)
+        .group_by(Payment.invoice_id)
+        .subquery()
+    )
+    balance = Invoice.total - func.coalesce(payment_totals.c.total_paid, 0)
+    statement = select(Invoice).options(selectinload(Invoice.line_items)).where(
+        Invoice.owner_id == owner_id
+    )
+    if has_balance is not None or overdue_only:
+        statement = statement.outerjoin(
+            payment_totals,
+            payment_totals.c.invoice_id == Invoice.id,
+        )
+    if status is not None:
+        statement = statement.where(Invoice.status == status)
+    if currency is not None:
+        statement = statement.where(Invoice.currency == currency)
+    if issue_date_from is not None:
+        statement = statement.where(Invoice.issue_date >= issue_date_from)
+    if issue_date_to is not None:
+        statement = statement.where(Invoice.issue_date <= issue_date_to)
+    if has_balance is True:
+        statement = statement.where(
+            balance > 0,
+            Invoice.status != InvoiceStatus.CANCELLED,
+        )
+    elif has_balance is False:
+        statement = statement.where(balance <= 0)
+    if overdue_only:
+        effective_date = as_of_date or date.today()
+        statement = statement.where(
+            balance > 0,
+            Invoice.due_date < effective_date,
+            Invoice.status != InvoiceStatus.CANCELLED,
+        )
     statement = (
-        select(Invoice)
-        .options(selectinload(Invoice.line_items))
-        .where(Invoice.owner_id == owner_id)
-        .order_by(Invoice.issue_date.desc(), Invoice.invoice_number.desc())
+        statement.order_by(
+            Invoice.issue_date.desc(),
+            Invoice.invoice_number.desc(),
+        )
         .offset(offset)
         .limit(limit)
     )

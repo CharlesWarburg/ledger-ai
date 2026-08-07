@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from decimal import Decimal
 from typing import Mapping, Optional
 
@@ -42,17 +43,26 @@ def add_payment_record(
 def list_payment_records(
     db: Session,
     owner_id: uuid.UUID,
-    invoice_id: uuid.UUID,
+    invoice_id: Optional[uuid.UUID] = None,
     offset: int = 0,
     limit: int = 100,
+    currency: Optional[str] = None,
+    payment_date_from: Optional[date] = None,
+    payment_date_to: Optional[date] = None,
 ) -> list[Payment]:
-    statement = (
-        select(Payment)
-        .where(
-            Payment.owner_id == owner_id,
-            Payment.invoice_id == invoice_id,
+    statement = select(Payment).where(Payment.owner_id == owner_id)
+    if currency is not None:
+        statement = statement.join(Invoice, Invoice.id == Payment.invoice_id).where(
+            Invoice.currency == currency
         )
-        .order_by(Payment.payment_date.desc(), Payment.created_at.desc())
+    if invoice_id is not None:
+        statement = statement.where(Payment.invoice_id == invoice_id)
+    if payment_date_from is not None:
+        statement = statement.where(Payment.payment_date >= payment_date_from)
+    if payment_date_to is not None:
+        statement = statement.where(Payment.payment_date <= payment_date_to)
+    statement = (
+        statement.order_by(Payment.payment_date.desc(), Payment.created_at.desc())
         .offset(offset)
         .limit(limit)
     )

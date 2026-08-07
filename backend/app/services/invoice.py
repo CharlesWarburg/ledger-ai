@@ -43,6 +43,10 @@ class InvalidInvoiceStatusTransitionError(ValueError):
     pass
 
 
+class InvoiceFilterDateError(ValueError):
+    pass
+
+
 ALLOWED_STATUS_TRANSITIONS: dict[InvoiceStatus, set[InvoiceStatus]] = {
     InvoiceStatus.DRAFT: {InvoiceStatus.SENT, InvoiceStatus.CANCELLED},
     InvoiceStatus.SENT: {
@@ -169,8 +173,34 @@ def list_invoices(
     owner_id: uuid.UUID,
     offset: int = 0,
     limit: int = 100,
+    status: Optional[InvoiceStatus] = None,
+    currency: Optional[str] = None,
+    issue_date_from: Optional[date] = None,
+    issue_date_to: Optional[date] = None,
+    has_balance: Optional[bool] = None,
+    overdue_only: bool = False,
 ) -> list[Invoice]:
-    return list_invoice_records(db, owner_id, offset=offset, limit=limit)
+    if (
+        issue_date_from is not None
+        and issue_date_to is not None
+        and issue_date_to < issue_date_from
+    ):
+        raise InvoiceFilterDateError(
+            "Invoice issue-date end cannot be before its start"
+        )
+    normalized_currency = currency.strip().upper() if currency else None
+    return list_invoice_records(
+        db,
+        owner_id,
+        offset=offset,
+        limit=limit,
+        status=status,
+        currency=normalized_currency,
+        issue_date_from=issue_date_from,
+        issue_date_to=issue_date_to,
+        has_balance=has_balance,
+        overdue_only=overdue_only,
+    )
 
 
 def get_invoice(

@@ -43,6 +43,10 @@ class PaymentDateError(ValueError):
     pass
 
 
+class PaymentFilterDateError(ValueError):
+    pass
+
+
 def _require_owned_invoice(
     db: Session,
     owner_id: uuid.UUID,
@@ -138,14 +142,55 @@ def list_payments(
     invoice_id: uuid.UUID,
     offset: int = 0,
     limit: int = 100,
+    payment_date_from: Optional[date] = None,
+    payment_date_to: Optional[date] = None,
 ) -> list[Payment]:
     _require_owned_invoice(db, owner_id, invoice_id)
+    _validate_filter_dates(payment_date_from, payment_date_to)
     return list_payment_records(
         db,
         owner_id,
         invoice_id,
         offset=offset,
         limit=limit,
+        payment_date_from=payment_date_from,
+        payment_date_to=payment_date_to,
+    )
+
+
+def _validate_filter_dates(
+    payment_date_from: Optional[date],
+    payment_date_to: Optional[date],
+) -> None:
+    if (
+        payment_date_from is not None
+        and payment_date_to is not None
+        and payment_date_to < payment_date_from
+    ):
+        raise PaymentFilterDateError(
+            "Payment-date end cannot be before its start"
+        )
+
+
+def list_all_payments(
+    db: Session,
+    owner_id: uuid.UUID,
+    offset: int = 0,
+    limit: int = 100,
+    currency: Optional[str] = None,
+    payment_date_from: Optional[date] = None,
+    payment_date_to: Optional[date] = None,
+) -> list[Payment]:
+    _validate_filter_dates(payment_date_from, payment_date_to)
+    normalized_currency = currency.strip().upper() if currency else None
+    return list_payment_records(
+        db,
+        owner_id,
+        offset=offset,
+        limit=limit,
+        currency=normalized_currency,
+        payment_date_from=payment_date_from,
+        payment_date_to=payment_date_to,
     )
 
 
