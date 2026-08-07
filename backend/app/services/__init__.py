@@ -12,6 +12,12 @@ from app.services.customer import (
     list_customers,
     update_customer,
 )
+from app.services.dashboard import (
+    DashboardActivityLimitError,
+    DashboardCurrencyError,
+    DashboardPeriodError,
+    get_dashboard,
+)
 from app.services.invoice import (
     InvalidInvoiceStatusTransitionError,
     InvoiceCustomerNotFoundError,
@@ -44,6 +50,9 @@ __all__ = [
     "EmailAlreadyRegisteredError",
     "InvalidCredentialsError",
     "CustomerNotFoundError",
+    "DashboardActivityLimitError",
+    "DashboardCurrencyError",
+    "DashboardPeriodError",
     "InvalidInvoiceStatusTransitionError",
     "InvoiceCustomerNotFoundError",
     "InvoiceDateError",
@@ -63,6 +72,7 @@ __all__ = [
     "delete_invoice",
     "delete_payment",
     "get_customer",
+    "get_dashboard",
     "get_invoice",
     "get_outstanding_balance",
     "get_payment",
