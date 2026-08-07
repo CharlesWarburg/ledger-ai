@@ -70,16 +70,72 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Current user endpoint
   - ✅ Protected-route dependency
   - ✅ Roles and administrator-route enforcement
-- ⬜ Phase 3 — Customers CRUD
-- ⬜ Phase 4 — Invoices CRUD, status, VAT, and due dates
-- ⬜ Phase 5 — Payments, partial payments, and outstanding balances
-- ⬜ Phase 6 — Dashboard metrics, charts, and recent activity
-- ⬜ Phase 7 — PDF, image, and receipt uploads
-- ⬜ Phase 8 — OCR and AI invoice processing
-- ⬜ Phase 9 — AI financial insights
-- ⬜ Phase 10 — Natural-language financial assistant
-- ⬜ Phase 11 — CSV, PDF, and monthly reporting
-- ⬜ Phase 12 — Production infrastructure, workers, reminders, observability, and testing
+- ⬜ Phase 3 — Customers
+  - ⬜ Customer model
+  - ⬜ User ownership relationship
+  - ⬜ Customer migration
+  - ⬜ Customer request and response schemas
+  - ⬜ Customer repository and service
+  - ⬜ Create customer
+  - ⬜ List customers
+  - ⬜ Get customer
+  - ⬜ Update customer
+  - ⬜ Delete customer
+  - ⬜ Ownership enforcement
+- ⬜ Phase 4 — Invoices
+  - ⬜ Invoice model
+  - ⬜ Invoice migration
+  - ⬜ Invoice request and response schemas
+  - ⬜ Invoice repository and service
+  - ⬜ Create invoice
+  - ⬜ List invoices
+  - ⬜ Get invoice
+  - ⬜ Update invoice
+  - ⬜ Delete invoice
+  - ⬜ Invoice status
+  - ⬜ VAT
+  - ⬜ Due dates
+- ⬜ Phase 5 — Payments
+  - ⬜ Payment model
+  - ⬜ Payment migration
+  - ⬜ Payment schemas
+  - ⬜ Payment repository and service
+  - ⬜ Record payments
+  - ⬜ Partial payments
+  - ⬜ Outstanding balances
+- ⬜ Phase 6 — Dashboard
+  - ⬜ Revenue
+  - ⬜ Outstanding invoices
+  - ⬜ Cash flow
+  - ⬜ Charts
+  - ⬜ Recent activity
+- ⬜ Phase 7 — File Upload
+  - ⬜ PDF uploads
+  - ⬜ Image uploads
+  - ⬜ Receipt uploads
+- ⬜ Phase 8 — AI Invoice Processing
+  - ⬜ OCR
+  - ⬜ Structured outputs
+  - ⬜ Automatic invoice creation
+- ⬜ Phase 9 — AI Insights
+  - ⬜ Cash flow forecasts
+  - ⬜ Duplicate detection
+  - ⬜ Slow payer detection
+  - ⬜ Executive summaries
+- ⬜ Phase 10 — AI Assistant
+  - ⬜ Natural-language financial queries
+- ⬜ Phase 11 — Reporting
+  - ⬜ CSV reports
+  - ⬜ PDF reports
+  - ⬜ Monthly reports
+- ⬜ Phase 12 — Production
+  - ⬜ AWS deployment
+  - ⬜ S3 storage
+  - ⬜ GitHub Actions
+  - ⬜ Background workers
+  - ⬜ Email reminders
+  - ⬜ Production logging and observability
+  - ⬜ Automated testing
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the detailed audit, current task, blockers, and technical decisions.
 
