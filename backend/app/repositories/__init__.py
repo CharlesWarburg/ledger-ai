@@ -14,22 +14,38 @@ from app.repositories.invoice import (
     replace_invoice_line_items,
     update_invoice_record,
 )
+from app.repositories.payment import (
+    add_payment_record,
+    delete_payment_record,
+    get_invoice_for_payment,
+    get_payment_record,
+    list_payment_records,
+    total_paid_for_invoice,
+    update_payment_record,
+)
 from app.repositories.user import add_user, get_user_by_email, get_user_by_id
 
 __all__ = [
     "add_customer_record",
     "add_invoice_record",
+    "add_payment_record",
     "add_user",
     "delete_customer_record",
     "delete_invoice_record",
+    "delete_payment_record",
     "get_customer_record",
     "get_invoice_record",
+    "get_invoice_for_payment",
+    "get_payment_record",
     "get_user_by_email",
     "get_user_by_id",
     "invoice_number_exists",
     "list_invoice_records",
+    "list_payment_records",
     "list_customer_records",
     "replace_invoice_line_items",
+    "total_paid_for_invoice",
     "update_customer_record",
     "update_invoice_record",
+    "update_payment_record",
 ]
