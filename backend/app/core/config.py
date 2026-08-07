@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     jwt_algorithm: Literal["HS256"] = "HS256"
     access_token_expire_minutes: int = Field(default=30, gt=0)
     database_url: str
+    upload_directory: Path = Path("uploads")
+    max_upload_size_bytes: int = Field(
+        default=10 * 1024 * 1024,
+        gt=0,
+    )
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

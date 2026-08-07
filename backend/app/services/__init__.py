@@ -48,9 +48,19 @@ from app.services.payment import (
     list_payments,
     update_payment,
 )
+from app.services.storage import (
+    FileStorageError,
+    FileValidationError,
+    ValidatedUpload,
+    delete_stored_upload,
+    store_upload,
+    validate_upload,
+)
 
 __all__ = [
     "EmailAlreadyRegisteredError",
+    "FileStorageError",
+    "FileValidationError",
     "InvalidCredentialsError",
     "CustomerNotFoundError",
     "DashboardActivityLimitError",
@@ -68,6 +78,7 @@ __all__ = [
     "PaymentInvoiceNotFoundError",
     "PaymentInvoiceStatusError",
     "PaymentNotFoundError",
+    "ValidatedUpload",
     "authenticate_user",
     "create_customer",
     "create_invoice",
@@ -76,6 +87,7 @@ __all__ = [
     "delete_customer",
     "delete_invoice",
     "delete_payment",
+    "delete_stored_upload",
     "get_customer",
     "get_dashboard",
     "get_invoice",
@@ -86,8 +98,10 @@ __all__ = [
     "list_invoices",
     "list_payments",
     "register_user",
+    "store_upload",
     "update_customer",
     "update_invoice",
     "update_invoice_status",
     "update_payment",
+    "validate_upload",
 ]
