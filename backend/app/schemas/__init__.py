@@ -5,6 +5,14 @@ from app.schemas.auth import (
     UserResponse,
 )
 from app.schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
+from app.schemas.dashboard import (
+    DashboardKpis,
+    DashboardResponse,
+    InvoiceStatusMetric,
+    MonthlyCashFlowPoint,
+    RecentActivityItem,
+    RecentActivityType,
+)
 from app.schemas.invoice import (
     InvoiceCreate,
     InvoiceLineItemCreate,
@@ -20,15 +28,21 @@ __all__ = [
     "CustomerCreate",
     "CustomerResponse",
     "CustomerUpdate",
+    "DashboardKpis",
+    "DashboardResponse",
     "InvoiceCreate",
     "InvoiceLineItemCreate",
     "InvoiceLineItemResponse",
     "InvoiceResponse",
     "InvoiceStatusUpdate",
+    "InvoiceStatusMetric",
     "InvoiceUpdate",
     "PaymentCreate",
     "PaymentResponse",
     "PaymentUpdate",
+    "MonthlyCashFlowPoint",
+    "RecentActivityItem",
+    "RecentActivityType",
     "UserLogin",
     "UserRegister",
     "UserResponse",
