@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.auth import router as auth_router
 from app.api.customers import router as customers_router
 from app.api.dashboard import router as dashboard_router
+from app.api.documents import router as documents_router
 from app.api.invoices import router as invoices_router
 from app.api.payments import router as payments_router
 from app.core.config import settings
@@ -33,6 +34,7 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(customers_router)
 app.include_router(dashboard_router)
+app.include_router(documents_router)
 app.include_router(invoices_router)
 app.include_router(payments_router)
 
