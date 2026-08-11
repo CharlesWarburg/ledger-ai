@@ -4,6 +4,7 @@ from typing import Protocol, runtime_checkable
 from openai import OpenAI, OpenAIError
 
 from app.schemas.document_processing import InvoiceExtraction
+from app.schemas.insights import ExecutiveSummaryResponse
 
 
 class AIProviderNotConfiguredError(RuntimeError):
@@ -113,3 +114,28 @@ class OpenAIInvoiceExtractionProvider:
                 "OpenAI did not return a structured invoice extraction"
             )
         return extraction
+
+    def generate_executive_summary(
+        self,
+        insight_snapshot: str,
+    ) -> ExecutiveSummaryResponse:
+        try:
+            response = self._client.responses.parse(
+                model=self._model,
+                store=False,
+                input=(
+                    "Create a concise executive financial briefing from this "
+                    "aggregated data only. Do not invent facts.\n\n"
+                    + insight_snapshot
+                ),
+                text_format=ExecutiveSummaryResponse,
+            )
+        except OpenAIError as exc:
+            raise AIProviderProcessingError(
+                "OpenAI executive-summary request failed"
+            ) from exc
+        if response.output_parsed is None:
+            raise AIProviderProcessingError(
+                "OpenAI did not return a structured executive summary"
+            )
+        return response.output_parsed
