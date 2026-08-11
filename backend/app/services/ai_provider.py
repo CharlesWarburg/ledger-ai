@@ -5,6 +5,7 @@ from openai import OpenAI, OpenAIError
 
 from app.schemas.document_processing import InvoiceExtraction
 from app.schemas.insights import ExecutiveSummaryResponse
+from app.schemas.assistant import FinancialAssistantAnswer
 
 
 class AIProviderNotConfiguredError(RuntimeError):
@@ -138,4 +139,26 @@ class OpenAIInvoiceExtractionProvider:
             raise AIProviderProcessingError(
                 "OpenAI did not return a structured executive summary"
             )
+        return response.output_parsed
+
+    def answer_financial_question(
+        self,
+        question: str,
+        financial_context: str,
+    ) -> FinancialAssistantAnswer:
+        try:
+            response = self._client.responses.parse(
+                model=self._model,
+                store=False,
+                input=(
+                    "Answer only from the supplied financial context. If the "
+                    "context does not support an answer, say so clearly.\n\n"
+                    "Question: " + question + "\n\nContext: " + financial_context
+                ),
+                text_format=FinancialAssistantAnswer,
+            )
+        except OpenAIError as exc:
+            raise AIProviderProcessingError("OpenAI assistant request failed") from exc
+        if response.output_parsed is None:
+            raise AIProviderProcessingError("OpenAI did not return a structured answer")
         return response.output_parsed
