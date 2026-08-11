@@ -20,6 +20,8 @@ class Settings(BaseSettings):
         default=10 * 1024 * 1024,
         gt=0,
     )
+    openai_api_key: SecretStr = SecretStr("")
+    openai_invoice_model: str = "gpt-4o-mini"
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

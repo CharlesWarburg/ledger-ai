@@ -8,6 +8,7 @@ from app.services.ai_provider import (
     AIProviderNotConfiguredError,
     AIProviderProcessingError,
     InvoiceExtractionProvider,
+    OpenAIInvoiceExtractionProvider,
     UnconfiguredInvoiceExtractionProvider,
 )
 from app.services.customer import (
@@ -104,6 +105,7 @@ __all__ = [
     "InvalidInvoiceStatusTransitionError",
     "InvoiceCustomerNotFoundError",
     "InvoiceExtractionProvider",
+    "OpenAIInvoiceExtractionProvider",
     "InvoiceDateError",
     "InvoiceFilterDateError",
     "InvoiceNotFoundError",
