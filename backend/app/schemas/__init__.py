@@ -14,6 +14,11 @@ from app.schemas.dashboard import (
     RecentActivityType,
 )
 from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
+from app.schemas.document_processing import (
+    DocumentProcessingResponse,
+    ExtractedInvoiceLineItem,
+    InvoiceExtraction,
+)
 from app.schemas.invoice import (
     InvoiceCreate,
     InvoiceLineItemCreate,
@@ -34,7 +39,10 @@ __all__ = [
     "DocumentCreate",
     "DocumentResponse",
     "DocumentUpdate",
+    "DocumentProcessingResponse",
+    "ExtractedInvoiceLineItem",
     "InvoiceCreate",
+    "InvoiceExtraction",
     "InvoiceLineItemCreate",
     "InvoiceLineItemResponse",
     "InvoiceResponse",
