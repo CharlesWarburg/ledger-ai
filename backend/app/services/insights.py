@@ -1,4 +1,5 @@
 import uuid
+import json
 from datetime import date
 from typing import Optional
 
@@ -16,7 +17,9 @@ from app.schemas.insights import (
     DuplicateInvoiceMatch,
     SlowPayerInsight,
     SlowPayerInsightsResponse,
+    ExecutiveSummaryResponse,
 )
+from app.services.ai_provider import OpenAIInvoiceExtractionProvider
 
 
 class InsightCurrencyError(ValueError):
@@ -141,6 +144,28 @@ def list_slow_payers(
         as_of_date=effective_date,
         customers=customers[:limit],
     )
+
+
+def generate_executive_summary(
+    db: Session,
+    owner_id: uuid.UUID,
+    provider: OpenAIInvoiceExtractionProvider,
+    currency: str = "GBP",
+    as_of_date: Optional[date] = None,
+) -> ExecutiveSummaryResponse:
+    effective_date = as_of_date or date.today()
+    snapshot = {
+        "duplicates": list_duplicate_invoices(
+            db, owner_id, currency=currency
+        ).model_dump(mode="json"),
+        "cash_flow_forecast": get_cash_flow_forecast(
+            db, owner_id, currency=currency, as_of_date=effective_date
+        ).model_dump(mode="json"),
+        "slow_payers": list_slow_payers(
+            db, owner_id, currency=currency, as_of_date=effective_date
+        ).model_dump(mode="json"),
+    }
+    return provider.generate_executive_summary(json.dumps(snapshot))
 
 
 def list_duplicate_invoices(
