@@ -133,20 +133,30 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Receipt uploads
 - 🚧 Phase 8 — AI Invoice Processing
   - ✅ Document Processing lifecycle model
-  - ⬜ OCR
-  - ⬜ Structured outputs
-  - ⬜ Automatic invoice creation
+  - ✅ Document Processing migration
+  - ✅ Structured extraction schemas
+  - ✅ Provider-agnostic AI extraction boundary
+  - ✅ Document Processing orchestration service
+  - ✅ Protected processing-status and review API routes
+  - ✅ OpenAI provider implementation (PDF/JPEG/PNG with validated structured output)
+  - ✅ Protected endpoint to process an uploaded document with OpenAI
+  - ✅ Invoice-reference migration for document-processing auditability
+  - ✅ OCR via OpenAI PDF/image processing
+  - ✅ Structured outputs validated against the invoice extraction schema
+  - ✅ Automatic invoice creation from approved extraction data
 - ⬜ Phase 9 — AI Insights
-  - ⬜ Cash flow forecasts
-  - ⬜ Duplicate detection
-  - ⬜ Slow payer detection
-  - ⬜ Executive summaries
-- ⬜ Phase 10 — AI Assistant
-  - ⬜ Natural-language financial queries
-- ⬜ Phase 11 — Reporting
-  - ⬜ CSV reports
-  - ⬜ PDF reports
-  - ⬜ Monthly reports
+  - ✅ Duplicate-invoice detection
+  - ✅ Cash-flow forecast from outstanding invoice due dates
+  - ✅ Slow-payer detection from overdue balances
+  - ✅ OpenAI executive summaries from aggregated insights
+- ✅ Phase 10 — AI Assistant
+  - ✅ Natural-language financial queries with user-scoped context
+- ✅ Phase 11 — Reporting
+  - ✅ Invoice and payment CSV exports
+  - ✅ Monthly financial report data endpoint
+  - ✅ Monthly PDF report export
+  - ✅ PDF reports
+  - ✅ Monthly reports
 - ⬜ Phase 12 — Production
   - ⬜ AWS deployment
   - ⬜ S3 storage
@@ -155,6 +165,54 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ⬜ Email reminders
   - ⬜ Production logging and observability
   - ⬜ Automated testing
+
+## Frontend roadmap
+
+Frontend work begins after completion of the Phase 11 backend APIs. Production work in backend Phase 12 remains deferred until this roadmap is complete.
+
+Legend: ✅ completed · 🚧 in progress · ⬜ not started
+
+- 🚧 Frontend Phase 1 — Foundation
+  - ✅ Next.js, React, TypeScript, and Tailwind CSS scaffold
+  - ⬜ Frontend environment configuration
+  - ⬜ Shared TypeScript API contracts
+  - ⬜ Authenticated API request wrapper
+  - ⬜ Consistent API error handling
+- ⬜ Frontend Phase 2 — Authentication
+  - ⬜ Registration and login
+  - ⬜ Logout
+  - ⬜ JWT session and token handling
+  - ⬜ Protected routes
+- ⬜ Frontend Phase 3 — Application shell
+  - ⬜ Responsive application layout and navigation
+  - ⬜ Reusable UI components
+  - ⬜ Loading, empty, and error states
+- ⬜ Frontend Phase 4 — Customers
+  - ⬜ Customer list and detail views
+  - ⬜ Create, edit, and delete workflows
+- ⬜ Frontend Phase 5 — Invoices
+  - ⬜ Invoice list and detail views
+  - ⬜ Invoice creation and editing
+  - ⬜ Line-item management and status workflows
+- ⬜ Frontend Phase 6 — Payments
+  - ⬜ Payment recording and management
+  - ⬜ Outstanding-balance views
+- ⬜ Frontend Phase 7 — Documents and AI processing
+  - ⬜ Document upload and management
+  - ⬜ AI processing status and review
+  - ⬜ Invoice creation from approved extraction data
+- ⬜ Frontend Phase 8 — Dashboard
+  - ⬜ KPI cards and charts
+  - ⬜ Dashboard filters and drill-through views
+  - ⬜ Cross-filtering between dashboard data
+- ⬜ Frontend Phase 9 — Insights, assistant, and reporting
+  - ⬜ Duplicate invoices, cash-flow forecast, and slow-payer insights
+  - ⬜ Executive summary and financial assistant
+  - ⬜ CSV and PDF report workflows
+- ⬜ Frontend Phase 10 — Quality and integration
+  - ⬜ Responsive design polish
+  - ⬜ Accessibility review
+  - ⬜ Frontend integration testing
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the detailed audit, current task, blockers, and technical decisions.
 
