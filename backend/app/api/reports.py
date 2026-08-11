@@ -1,3 +1,4 @@
+import calendar
 import csv
 import io
 from datetime import date
@@ -11,10 +12,28 @@ from app.api.dependencies import get_current_user
 from app.db.database import get_db
 from app.models.invoice import InvoiceStatus
 from app.models.user import User
+from app.schemas.dashboard import DashboardResponse
+from app.services.dashboard import get_dashboard
 from app.services.invoice import list_invoices
 from app.services.payment import list_all_payments
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+
+
+@router.get("/monthly", response_model=DashboardResponse)
+def get_monthly_report(
+    year: int = Query(..., ge=2000, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    currency: str = Query(default="GBP", min_length=3, max_length=3),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DashboardResponse:
+    period_start = date(year, month, 1)
+    period_end = date(year, month, calendar.monthrange(year, month)[1])
+    return get_dashboard(
+        db, current_user.id, currency=currency, date_from=period_start,
+        date_to=period_end, as_of_date=period_end,
+    )
 
 
 @router.get("/invoices.csv")
