@@ -79,3 +79,12 @@ class SlowPayerInsightsResponse(BaseModel):
         if isinstance(value, str):
             return value.strip().upper()
         return value
+
+
+class ExecutiveSummaryResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    summary: str = Field(min_length=1, max_length=2000)
+    key_findings: list[str] = Field(min_length=1, max_length=5)
+    risks: list[str] = Field(default_factory=list, max_length=5)
+    recommended_actions: list[str] = Field(default_factory=list, max_length=5)
