@@ -34,6 +34,8 @@ from app.schemas.insights import (
     CashFlowForecastResponse,
     DuplicateInvoiceInsightsResponse,
     DuplicateInvoiceMatch,
+    SlowPayerInsight,
+    SlowPayerInsightsResponse,
 )
 from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentUpdate
 
@@ -48,6 +50,8 @@ __all__ = [
     "CashFlowForecastResponse",
     "DuplicateInvoiceInsightsResponse",
     "DuplicateInvoiceMatch",
+    "SlowPayerInsight",
+    "SlowPayerInsightsResponse",
     "DocumentCreate",
     "DocumentResponse",
     "DocumentUpdate",

@@ -69,6 +69,7 @@ from app.services.insights import (
     InsightForecastPeriodError,
     get_cash_flow_forecast,
     list_duplicate_invoices,
+    list_slow_payers,
 )
 from app.services.payment import (
     PaymentDateError,
@@ -160,6 +161,7 @@ __all__ = [
     "list_all_payments",
     "list_invoices",
     "list_duplicate_invoices",
+    "list_slow_payers",
     "list_payments",
     "register_user",
     "read_stored_upload",

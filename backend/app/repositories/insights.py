@@ -84,3 +84,42 @@ def list_outstanding_invoice_balances(
         (due_date, Decimal(amount))
         for due_date, amount in db.execute(statement).all()
     ]
+
+
+def list_overdue_invoice_balances(
+    db: Session,
+    owner_id: uuid.UUID,
+    currency: str,
+    as_of_date: date,
+) -> list[tuple[Customer, date, Decimal]]:
+    payment_totals = (
+        select(
+            Payment.invoice_id.label("invoice_id"),
+            func.sum(Payment.amount).label("total_paid"),
+        )
+        .where(
+            Payment.owner_id == owner_id,
+            Payment.payment_date <= as_of_date,
+        )
+        .group_by(Payment.invoice_id)
+        .subquery()
+    )
+    balance = Invoice.total - func.coalesce(payment_totals.c.total_paid, 0)
+    statement = (
+        select(Customer, Invoice.due_date, balance)
+        .join(Customer, Customer.id == Invoice.customer_id)
+        .outerjoin(payment_totals, payment_totals.c.invoice_id == Invoice.id)
+        .where(
+            Invoice.owner_id == owner_id,
+            Invoice.currency == currency,
+            Invoice.issue_date <= as_of_date,
+            Invoice.due_date < as_of_date,
+            Invoice.status != InvoiceStatus.CANCELLED,
+            balance > 0,
+        )
+        .order_by(Invoice.due_date)
+    )
+    return [
+        (customer, due_date, Decimal(amount))
+        for customer, due_date, amount in db.execute(statement).all()
+    ]

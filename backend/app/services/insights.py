@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.repositories.insights import (
     list_duplicate_invoice_candidates,
+    list_overdue_invoice_balances,
     list_outstanding_invoice_balances,
 )
 from app.schemas.insights import (
@@ -13,6 +14,8 @@ from app.schemas.insights import (
     CashFlowForecastResponse,
     DuplicateInvoiceInsightsResponse,
     DuplicateInvoiceMatch,
+    SlowPayerInsight,
+    SlowPayerInsightsResponse,
 )
 
 
@@ -83,6 +86,60 @@ def get_cash_flow_forecast(
             )
             for month, values in amounts.items()
         ],
+    )
+
+
+def list_slow_payers(
+    db: Session,
+    owner_id: uuid.UUID,
+    currency: str = "GBP",
+    as_of_date: Optional[date] = None,
+    limit: int = 50,
+) -> SlowPayerInsightsResponse:
+    normalized_currency = currency.strip().upper()
+    if len(normalized_currency) != 3 or not normalized_currency.isalpha():
+        raise InsightCurrencyError("Currency must be a three-letter code")
+    effective_date = as_of_date or date.today()
+    grouped: dict[uuid.UUID, dict[str, object]] = {}
+    for customer, due_date, balance in list_overdue_invoice_balances(
+        db,
+        owner_id,
+        normalized_currency,
+        effective_date,
+    ):
+        current = grouped.setdefault(
+            customer.id,
+            {
+                "customer_name": customer.name,
+                "overdue_invoice_count": 0,
+                "overdue_balance": 0,
+                "longest_days_overdue": 0,
+            },
+        )
+        current["overdue_invoice_count"] = int(
+            current["overdue_invoice_count"]
+        ) + 1
+        current["overdue_balance"] = current["overdue_balance"] + balance
+        current["longest_days_overdue"] = max(
+            int(current["longest_days_overdue"]),
+            (effective_date - due_date).days,
+        )
+
+    customers = [
+        SlowPayerInsight(customer_id=customer_id, **values)
+        for customer_id, values in grouped.items()
+    ]
+    customers.sort(
+        key=lambda customer: (
+            customer.overdue_balance,
+            customer.longest_days_overdue,
+        ),
+        reverse=True,
+    )
+    return SlowPayerInsightsResponse(
+        currency=normalized_currency,
+        as_of_date=effective_date,
+        customers=customers[:limit],
     )
 
 

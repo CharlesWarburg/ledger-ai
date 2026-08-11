@@ -54,3 +54,28 @@ class CashFlowForecastResponse(BaseModel):
         if isinstance(value, str):
             return value.strip().upper()
         return value
+
+
+class SlowPayerInsight(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    customer_id: uuid.UUID
+    customer_name: str = Field(min_length=1, max_length=255)
+    overdue_invoice_count: int = Field(ge=1)
+    overdue_balance: Decimal = Field(gt=0)
+    longest_days_overdue: int = Field(ge=1)
+
+
+class SlowPayerInsightsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    currency: str = Field(min_length=3, max_length=3)
+    as_of_date: date
+    customers: list[SlowPayerInsight]
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().upper()
+        return value

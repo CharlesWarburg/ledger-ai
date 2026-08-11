@@ -10,6 +10,7 @@ from app.models.user import User
 from app.schemas.insights import (
     CashFlowForecastResponse,
     DuplicateInvoiceInsightsResponse,
+    SlowPayerInsightsResponse,
 )
 from app.services.insights import (
     InsightCurrencyError,
@@ -17,9 +18,38 @@ from app.services.insights import (
     InsightForecastPeriodError,
     get_cash_flow_forecast,
     list_duplicate_invoices,
+    list_slow_payers,
 )
 
 router = APIRouter(prefix="/insights", tags=["insights"])
+
+
+@router.get("/slow-payers", response_model=SlowPayerInsightsResponse)
+def list_slow_payers_endpoint(
+    currency: str = Query(
+        default="GBP",
+        min_length=3,
+        max_length=3,
+        pattern=r"^[A-Za-z]{3}$",
+    ),
+    as_of_date: Optional[date] = None,
+    limit: int = Query(default=50, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> SlowPayerInsightsResponse:
+    try:
+        return list_slow_payers(
+            db,
+            current_user.id,
+            currency=currency,
+            as_of_date=as_of_date,
+            limit=limit,
+        )
+    except InsightCurrencyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get("/cash-flow-forecast", response_model=CashFlowForecastResponse)

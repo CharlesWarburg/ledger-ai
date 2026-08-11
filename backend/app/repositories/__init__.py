@@ -38,6 +38,7 @@ from app.repositories.invoice import (
 from app.repositories.insights import (
     list_duplicate_invoice_candidates,
     list_outstanding_invoice_balances,
+    list_overdue_invoice_balances,
 )
 from app.repositories.payment import (
     add_payment_record,
@@ -83,6 +84,7 @@ __all__ = [
     "list_document_records",
     "list_duplicate_invoice_candidates",
     "list_outstanding_invoice_balances",
+    "list_overdue_invoice_balances",
     "replace_invoice_line_items",
     "total_paid_for_invoice",
     "update_customer_record",
