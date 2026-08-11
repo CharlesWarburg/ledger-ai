@@ -16,7 +16,7 @@ Direct backend dependencies are pinned in `backend/requirements.txt`.
 
 The repository is split into two applications:
 
-- `frontend/` is a Next.js App Router application. It currently contains the generated single-page starter UI and no API client, application components, state layer, or feature modules.
+- `frontend/` is a Next.js App Router application with a typed API client and a same-origin Route Handler that proxies requests to the environment-configured FastAPI origin. Application components, authentication state, and feature modules are not implemented yet.
 - `backend/` is a synchronous FastAPI application. Configuration is loaded from `backend/.env`; SQLAlchemy provides an engine, session factory, declarative base, and request-scoped database dependency. Authentication, Customer, and Invoice features use API, service, repository, schema, and model layers.
 - PostgreSQL runs separately through the root `docker-compose.yml` and publishes container port `5432` on host port `5433`.
 
@@ -43,6 +43,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Authenticated current-user lookup and reusable route protection
 - Ownership-scoped Customer CRUD API
 - Ownership-scoped Invoice CRUD API with line items, VAT calculations, and controlled status transitions
+- Typed frontend API contracts, authenticated request helpers, normalized FastAPI errors, and an environment-configured backend proxy
 
 Payment, dashboard, upload, AI, and reporting features remain unstarted.
 
@@ -172,12 +173,12 @@ Frontend work begins after completion of the Phase 11 backend APIs. Production w
 
 Legend: ✅ completed · 🚧 in progress · ⬜ not started
 
-- 🚧 Frontend Phase 1 — Foundation
+- ✅ Frontend Phase 1 — Foundation
   - ✅ Next.js, React, TypeScript, and Tailwind CSS scaffold
-  - ⬜ Frontend environment configuration
-  - ⬜ Shared TypeScript API contracts
-  - ⬜ Authenticated API request wrapper
-  - ⬜ Consistent API error handling
+  - ✅ Frontend environment configuration
+  - ✅ Shared TypeScript API contracts
+  - ✅ Authenticated API request wrapper
+  - ✅ Consistent API error handling
 - ⬜ Frontend Phase 2 — Authentication
   - ⬜ Registration and login
   - ⬜ Logout
@@ -225,9 +226,10 @@ Prerequisites: Docker with Compose, Node.js/npm, and Python 3.9 or newer. The ex
    ```bash
    cp .env.example .env
    cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env.local
    ```
 
-   Replace `change_me` in both files with the same local PostgreSQL password. The root `.env` configures the PostgreSQL container, while `backend/.env` configures FastAPI, SQLAlchemy, and Alembic. Do not commit either local `.env` file.
+   Replace `change_me` in the root and backend files with the same local PostgreSQL password. The root `.env` configures the PostgreSQL container, `backend/.env` configures FastAPI, SQLAlchemy, and Alembic, and `frontend/.env.local` configures the server-side FastAPI proxy through `LEDGER_API_BASE_URL`. Do not commit local environment files.
 
 2. Start PostgreSQL from the repository root:
 
@@ -293,7 +295,9 @@ ledger-ai/
 │   └── requirements.txt
 ├── frontend/
 │   ├── public/              # Generated starter assets
-│   └── src/app/             # App Router layout, page, and global CSS
+│   └── src/
+│       ├── app/             # App Router UI and same-origin backend proxy
+│       └── lib/api/         # Typed API client, errors, and backend contracts
 ├── docker-compose.yml       # PostgreSQL development service
 ├── PROJECT_STATUS.md        # Detailed project audit and status
 └── README.md
