@@ -4,6 +4,7 @@ from app.schemas.auth import (
     UserRegister,
     UserResponse,
 )
+from app.schemas.assistant import FinancialAssistantAnswer, FinancialAssistantQuestion
 from app.schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
 from app.schemas.dashboard import (
     DashboardKpis,
@@ -42,6 +43,8 @@ from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentUpdate
 
 __all__ = [
     "AccessTokenResponse",
+    "FinancialAssistantAnswer",
+    "FinancialAssistantQuestion",
     "CustomerCreate",
     "CustomerResponse",
     "CustomerUpdate",

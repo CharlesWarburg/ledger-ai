@@ -4,6 +4,7 @@ from app.services.auth import (
     authenticate_user,
     register_user,
 )
+from app.services.assistant import build_financial_assistant_context
 from app.services.ai_provider import (
     AIProviderNotConfiguredError,
     AIProviderProcessingError,
@@ -135,6 +136,7 @@ __all__ = [
     "ValidatedUpload",
     "UnconfiguredInvoiceExtractionProvider",
     "authenticate_user",
+    "build_financial_assistant_context",
     "create_customer",
     "create_document",
     "create_invoice_from_document_processing",
