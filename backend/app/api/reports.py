@@ -12,6 +12,7 @@ from app.db.database import get_db
 from app.models.invoice import InvoiceStatus
 from app.models.user import User
 from app.services.invoice import list_invoices
+from app.services.payment import list_all_payments
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -39,3 +40,22 @@ def export_invoices_csv(
         iter([output.getvalue()]), media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=invoices.csv"},
     )
+
+
+@router.get("/payments.csv")
+def export_payments_csv(
+    payment_date_from: Optional[date] = None,
+    payment_date_to: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> StreamingResponse:
+    payments = list_all_payments(
+        db, current_user.id, limit=1000,
+        payment_date_from=payment_date_from, payment_date_to=payment_date_to,
+    )
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["invoice_id", "amount", "payment_date", "reference", "notes"])
+    for payment in payments:
+        writer.writerow([payment.invoice_id, payment.amount, payment.payment_date, payment.reference or "", payment.notes or ""])
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=payments.csv"})
