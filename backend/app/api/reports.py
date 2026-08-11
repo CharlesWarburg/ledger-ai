@@ -6,6 +6,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
@@ -34,6 +36,23 @@ def get_monthly_report(
         db, current_user.id, currency=currency, date_from=period_start,
         date_to=period_end, as_of_date=period_end,
     )
+
+
+@router.get("/monthly.pdf")
+def export_monthly_report_pdf(
+    year: int = Query(..., ge=2000, le=2100), month: int = Query(..., ge=1, le=12),
+    currency: str = Query(default="GBP", min_length=3, max_length=3),
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db),
+) -> StreamingResponse:
+    report = get_monthly_report(year, month, currency, current_user, db)
+    output = io.BytesIO(); pdf = canvas.Canvas(output, pagesize=A4)
+    pdf.setTitle("Ledger AI Monthly Report"); pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(50, 790, "Ledger AI Monthly Financial Report")
+    pdf.setFont("Helvetica", 11); y = 755
+    lines = [f"Period: {report.period_start} to {report.period_end}", f"Currency: {report.currency}", f"Revenue received: {report.kpis.total_revenue}", f"Outstanding: {report.kpis.outstanding_amount}", f"Overdue: {report.kpis.overdue_amount}", f"Paid invoices: {report.kpis.paid_invoice_count}"]
+    for line in lines: pdf.drawString(50, y, line); y -= 24
+    pdf.showPage(); pdf.save(); output.seek(0)
+    return StreamingResponse(output, media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=monthly-report.pdf"})
 
 
 @router.get("/invoices.csv")
