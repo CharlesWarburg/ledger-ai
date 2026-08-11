@@ -13,9 +13,11 @@ from app.models.document import DocumentType
 from app.models.user import User
 from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
 from app.schemas.document_processing import (
+    DocumentProcessingInvoiceCreate,
     DocumentProcessingResponse,
     DocumentProcessingReview,
 )
+from app.schemas.invoice import InvoiceResponse
 from app.services.document import (
     DocumentInvoiceNotFoundError,
     DocumentNotFoundError,
@@ -29,12 +31,19 @@ from app.services.document import (
 from app.services.storage import FileStorageError, FileValidationError
 from app.services.document_processing import (
     DocumentProcessingExecutionError,
+    DocumentProcessingInvoiceAlreadyCreatedError,
+    DocumentProcessingInvoiceDataError,
     DocumentProcessingInvalidStateError,
     DocumentProcessingInProgressError,
     DocumentProcessingNotFoundError,
+    create_invoice_from_document_processing,
     get_document_processing_for_source_document,
     process_document,
     review_document_processing,
+)
+from app.services.invoice import (
+    InvoiceCustomerNotFoundError,
+    InvoiceNumberAlreadyExistsError,
 )
 from app.services.ai_provider import (
     AIProviderNotConfiguredError,
@@ -55,6 +64,20 @@ def _invoice_not_found() -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail="Invoice not found",
+    )
+
+
+def _customer_not_found() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Customer not found",
+    )
+
+
+def _duplicate_invoice_number() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="Invoice number is already in use",
     )
 
 
@@ -259,6 +282,45 @@ def review_document_processing_endpoint(
     except DocumentProcessingInvalidStateError as exc:
         raise _processing_invalid_state(exc) from exc
     return DocumentProcessingResponse.model_validate(processing)
+
+
+@router.post(
+    "/{document_id}/processing/create-invoice",
+    response_model=InvoiceResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_invoice_from_document_processing_endpoint(
+    document_id: uuid.UUID,
+    invoice_data: DocumentProcessingInvoiceCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> InvoiceResponse:
+    try:
+        invoice = create_invoice_from_document_processing(
+            db,
+            current_user.id,
+            document_id,
+            invoice_data.customer_id,
+        )
+    except DocumentNotFoundError as exc:
+        raise _document_not_found() from exc
+    except DocumentProcessingNotFoundError as exc:
+        raise _processing_not_found() from exc
+    except DocumentProcessingInvoiceDataError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+    except (
+        DocumentProcessingInvalidStateError,
+        DocumentProcessingInvoiceAlreadyCreatedError,
+    ) as exc:
+        raise _processing_invalid_state(exc) from exc
+    except InvoiceCustomerNotFoundError as exc:
+        raise _customer_not_found() from exc
+    except InvoiceNumberAlreadyExistsError as exc:
+        raise _duplicate_invoice_number() from exc
+    return InvoiceResponse.model_validate(invoice)
 
 
 @router.patch("/{document_id}", response_model=DocumentResponse)

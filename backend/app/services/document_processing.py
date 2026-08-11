@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -16,10 +17,14 @@ from app.repositories.document_processing import (
     get_document_processing_record,
     update_document_processing_record,
 )
+from app.repositories.document import update_document_record
 from app.services.ai_provider import InvoiceExtractionProvider
 from app.services.document import get_document
+from app.services.invoice import create_invoice
 from app.services.storage import read_stored_upload
 from app.schemas.document_processing import InvoiceExtraction
+from app.schemas.invoice import InvoiceCreate, InvoiceLineItemCreate
+from app.models.invoice import Invoice
 
 
 class DocumentProcessingNotFoundError(ValueError):
@@ -35,6 +40,14 @@ class DocumentProcessingInvalidStateError(ValueError):
 
 
 class DocumentProcessingExecutionError(RuntimeError):
+    pass
+
+
+class DocumentProcessingInvoiceDataError(ValueError):
+    pass
+
+
+class DocumentProcessingInvoiceAlreadyCreatedError(ValueError):
     pass
 
 
@@ -181,3 +194,64 @@ def review_document_processing(
     _commit(db)
     db.refresh(processing)
     return processing
+
+
+def create_invoice_from_document_processing(
+    db: Session,
+    owner_id: uuid.UUID,
+    document_id: uuid.UUID,
+    customer_id: uuid.UUID,
+) -> Invoice:
+    """Create a draft invoice from explicitly approved extraction data."""
+    document = get_document(db, owner_id, document_id)
+    processing = get_document_processing_for_source_document(
+        db,
+        owner_id,
+        document_id,
+    )
+    if processing.status != DocumentProcessingStatus.COMPLETED:
+        raise DocumentProcessingInvalidStateError(
+            "Document processing must be reviewed before an invoice is created"
+        )
+    if processing.created_invoice_id is not None:
+        raise DocumentProcessingInvoiceAlreadyCreatedError(
+            "An invoice has already been created from this document processing"
+        )
+    if document.invoice_id is not None:
+        raise DocumentProcessingInvalidStateError(
+            "Document is already linked to an invoice"
+        )
+    if processing.extracted_data is None:
+        raise DocumentProcessingInvoiceDataError(
+            "Approved processing data is missing"
+        )
+
+    try:
+        extraction = InvoiceExtraction.model_validate(processing.extracted_data)
+        invoice_data = InvoiceCreate(
+            customer_id=customer_id,
+            invoice_number=extraction.invoice_number,
+            currency=extraction.currency or "GBP",
+            issue_date=extraction.issue_date,
+            due_date=extraction.due_date,
+            notes=extraction.notes,
+            line_items=[
+                InvoiceLineItemCreate.model_validate(line_item.model_dump())
+                for line_item in extraction.line_items
+            ],
+        )
+    except ValidationError as exc:
+        raise DocumentProcessingInvoiceDataError(
+            "Approved extraction must include invoice number, issue date, due date, "
+            "and complete line items before an invoice can be created"
+        ) from exc
+
+    invoice = create_invoice(db, owner_id, invoice_data)
+    update_document_record(document, {"invoice_id": invoice.id})
+    update_document_processing_record(
+        processing,
+        {"created_invoice_id": invoice.id},
+    )
+    _commit(db)
+    db.refresh(invoice)
+    return invoice

@@ -15,6 +15,7 @@ from app.schemas.dashboard import (
 )
 from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
 from app.schemas.document_processing import (
+    DocumentProcessingInvoiceCreate,
     DocumentProcessingReview,
     DocumentProcessingResponse,
     ExtractedInvoiceLineItem,
@@ -42,6 +43,7 @@ __all__ = [
     "DocumentUpdate",
     "DocumentProcessingResponse",
     "DocumentProcessingReview",
+    "DocumentProcessingInvoiceCreate",
     "ExtractedInvoiceLineItem",
     "InvoiceCreate",
     "InvoiceExtraction",

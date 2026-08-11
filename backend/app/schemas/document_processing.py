@@ -131,3 +131,11 @@ class DocumentProcessingReview(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     extracted_data: InvoiceExtraction
+
+
+class DocumentProcessingInvoiceCreate(BaseModel):
+    """The user-selected customer for an approved invoice extraction."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    customer_id: uuid.UUID
