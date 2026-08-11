@@ -11,6 +11,10 @@ from app.db.database import get_db
 from app.models.document import DocumentType
 from app.models.user import User
 from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
+from app.schemas.document_processing import (
+    DocumentProcessingResponse,
+    DocumentProcessingReview,
+)
 from app.services.document import (
     DocumentInvoiceNotFoundError,
     DocumentNotFoundError,
@@ -22,6 +26,12 @@ from app.services.document import (
     update_document,
 )
 from app.services.storage import FileStorageError, FileValidationError
+from app.services.document_processing import (
+    DocumentProcessingInvalidStateError,
+    DocumentProcessingNotFoundError,
+    get_document_processing_for_source_document,
+    review_document_processing,
+)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -51,6 +61,20 @@ def _storage_error(exc: FileStorageError) -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Document storage operation failed",
+    )
+
+
+def _processing_not_found() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Document processing record not found",
+    )
+
+
+def _processing_invalid_state(exc: DocumentProcessingInvalidStateError) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=str(exc),
     )
 
 
@@ -138,6 +162,51 @@ def download_document_endpoint(
             "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
         },
     )
+
+
+@router.get("/{document_id}/processing", response_model=DocumentProcessingResponse)
+def get_document_processing_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentProcessingResponse:
+    try:
+        processing = get_document_processing_for_source_document(
+            db,
+            current_user.id,
+            document_id,
+        )
+    except DocumentNotFoundError as exc:
+        raise _document_not_found() from exc
+    except DocumentProcessingNotFoundError as exc:
+        raise _processing_not_found() from exc
+    return DocumentProcessingResponse.model_validate(processing)
+
+
+@router.patch(
+    "/{document_id}/processing/review",
+    response_model=DocumentProcessingResponse,
+)
+def review_document_processing_endpoint(
+    document_id: uuid.UUID,
+    review_data: DocumentProcessingReview,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentProcessingResponse:
+    try:
+        processing = review_document_processing(
+            db,
+            current_user.id,
+            document_id,
+            review_data.extracted_data,
+        )
+    except DocumentNotFoundError as exc:
+        raise _document_not_found() from exc
+    except DocumentProcessingNotFoundError as exc:
+        raise _processing_not_found() from exc
+    except DocumentProcessingInvalidStateError as exc:
+        raise _processing_invalid_state(exc) from exc
+    return DocumentProcessingResponse.model_validate(processing)
 
 
 @router.patch("/{document_id}", response_model=DocumentResponse)

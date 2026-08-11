@@ -42,6 +42,7 @@ from app.services.document_processing import (
     get_document_processing,
     get_document_processing_for_source_document,
     process_document,
+    review_document_processing,
 )
 from app.services.invoice import (
     InvalidInvoiceStatusTransitionError,
@@ -143,6 +144,7 @@ __all__ = [
     "register_user",
     "read_stored_upload",
     "process_document",
+    "review_document_processing",
     "store_upload",
     "update_customer",
     "update_document",

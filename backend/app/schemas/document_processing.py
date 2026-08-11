@@ -123,3 +123,11 @@ class DocumentProcessingResponse(BaseModel):
     completed_at: Optional[datetime]
     created_at: datetime
     updated_at: datetime
+
+
+class DocumentProcessingReview(BaseModel):
+    """Human-approved invoice data from an AI extraction."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    extracted_data: InvoiceExtraction

@@ -19,6 +19,7 @@ from app.repositories.document_processing import (
 from app.services.ai_provider import InvoiceExtractionProvider
 from app.services.document import get_document
 from app.services.storage import read_stored_upload
+from app.schemas.document_processing import InvoiceExtraction
 
 
 class DocumentProcessingNotFoundError(ValueError):
@@ -143,6 +144,37 @@ def process_document(
         {
             "status": DocumentProcessingStatus.REVIEW_REQUIRED,
             "extracted_data": extraction.model_dump(mode="json"),
+            "completed_at": _now(),
+        },
+    )
+    _commit(db)
+    db.refresh(processing)
+    return processing
+
+
+def review_document_processing(
+    db: Session,
+    owner_id: uuid.UUID,
+    document_id: uuid.UUID,
+    extracted_data: InvoiceExtraction,
+) -> DocumentProcessing:
+    """Save human-approved data without yet creating an invoice automatically."""
+    processing = get_document_processing_for_source_document(
+        db,
+        owner_id,
+        document_id,
+    )
+    if processing.status != DocumentProcessingStatus.REVIEW_REQUIRED:
+        raise DocumentProcessingInvalidStateError(
+            "Only processing records awaiting review can be approved"
+        )
+
+    update_document_processing_record(
+        processing,
+        {
+            "status": DocumentProcessingStatus.COMPLETED,
+            "extracted_data": extracted_data.model_dump(mode="json"),
+            "error_message": None,
             "completed_at": _now(),
         },
     )
