@@ -83,6 +83,7 @@ class OpenAIInvoiceExtractionProvider:
         try:
             response = self._client.responses.parse(
                 model=self._model,
+                store=False,
                 input=[
                     {
                         "role": "user",

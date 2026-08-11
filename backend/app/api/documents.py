@@ -7,6 +7,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
+from app.core.config import settings
 from app.db.database import get_db
 from app.models.document import DocumentType
 from app.models.user import User
@@ -27,10 +28,17 @@ from app.services.document import (
 )
 from app.services.storage import FileStorageError, FileValidationError
 from app.services.document_processing import (
+    DocumentProcessingExecutionError,
     DocumentProcessingInvalidStateError,
+    DocumentProcessingInProgressError,
     DocumentProcessingNotFoundError,
     get_document_processing_for_source_document,
+    process_document,
     review_document_processing,
+)
+from app.services.ai_provider import (
+    AIProviderNotConfiguredError,
+    OpenAIInvoiceExtractionProvider,
 )
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -75,6 +83,20 @@ def _processing_invalid_state(exc: DocumentProcessingInvalidStateError) -> HTTPE
     return HTTPException(
         status_code=status.HTTP_409_CONFLICT,
         detail=str(exc),
+    )
+
+
+def _processing_execution_error() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail="Document processing provider failed",
+    )
+
+
+def _processing_not_configured() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="Document processing provider is not configured",
     )
 
 
@@ -180,6 +202,36 @@ def get_document_processing_endpoint(
         raise _document_not_found() from exc
     except DocumentProcessingNotFoundError as exc:
         raise _processing_not_found() from exc
+    return DocumentProcessingResponse.model_validate(processing)
+
+
+@router.post("/{document_id}/processing", response_model=DocumentProcessingResponse)
+def process_document_endpoint(
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DocumentProcessingResponse:
+    try:
+        provider = OpenAIInvoiceExtractionProvider(
+            settings.openai_api_key.get_secret_value(),
+            settings.openai_invoice_model,
+        )
+        processing = process_document(
+            db,
+            current_user.id,
+            document_id,
+            provider,
+        )
+    except AIProviderNotConfiguredError as exc:
+        raise _processing_not_configured() from exc
+    except DocumentNotFoundError as exc:
+        raise _document_not_found() from exc
+    except DocumentProcessingInProgressError as exc:
+        raise _processing_invalid_state(exc) from exc
+    except DocumentProcessingInvalidStateError as exc:
+        raise _processing_invalid_state(exc) from exc
+    except DocumentProcessingExecutionError as exc:
+        raise _processing_execution_error() from exc
     return DocumentProcessingResponse.model_validate(processing)
 
 
