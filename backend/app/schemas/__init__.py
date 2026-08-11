@@ -29,6 +29,10 @@ from app.schemas.invoice import (
     InvoiceStatusUpdate,
     InvoiceUpdate,
 )
+from app.schemas.insights import (
+    DuplicateInvoiceInsightsResponse,
+    DuplicateInvoiceMatch,
+)
 from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentUpdate
 
 __all__ = [
@@ -38,6 +42,8 @@ __all__ = [
     "CustomerUpdate",
     "DashboardKpis",
     "DashboardResponse",
+    "DuplicateInvoiceInsightsResponse",
+    "DuplicateInvoiceMatch",
     "DocumentCreate",
     "DocumentResponse",
     "DocumentUpdate",

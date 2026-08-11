@@ -63,6 +63,11 @@ from app.services.invoice import (
     update_invoice,
     update_invoice_status,
 )
+from app.services.insights import (
+    InsightCurrencyError,
+    InsightDateRangeError,
+    list_duplicate_invoices,
+)
 from app.services.payment import (
     PaymentDateError,
     PaymentExceedsOutstandingBalanceError,
@@ -115,6 +120,8 @@ __all__ = [
     "InvoiceFilterDateError",
     "InvoiceNotFoundError",
     "InvoiceNumberAlreadyExistsError",
+    "InsightCurrencyError",
+    "InsightDateRangeError",
     "PaymentDateError",
     "PaymentExceedsOutstandingBalanceError",
     "PaymentFilterDateError",
@@ -148,6 +155,7 @@ __all__ = [
     "list_documents",
     "list_all_payments",
     "list_invoices",
+    "list_duplicate_invoices",
     "list_payments",
     "register_user",
     "read_stored_upload",
