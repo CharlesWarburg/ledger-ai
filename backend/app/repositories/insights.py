@@ -3,11 +3,12 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
 from app.models.customer import Customer
 from app.models.invoice import Invoice, InvoiceStatus
+from app.models.payment import Payment
 
 
 def list_duplicate_invoice_candidates(
@@ -44,3 +45,42 @@ def list_duplicate_invoice_candidates(
     if issue_date_to is not None:
         statement = statement.where(first_invoice.issue_date <= issue_date_to)
     return list(db.execute(statement).all())
+
+
+def list_outstanding_invoice_balances(
+    db: Session,
+    owner_id: uuid.UUID,
+    currency: str,
+    as_of_date: date,
+    due_date_to: date,
+) -> list[tuple[date, Decimal]]:
+    payment_totals = (
+        select(
+            Payment.invoice_id.label("invoice_id"),
+            func.sum(Payment.amount).label("total_paid"),
+        )
+        .where(
+            Payment.owner_id == owner_id,
+            Payment.payment_date <= as_of_date,
+        )
+        .group_by(Payment.invoice_id)
+        .subquery()
+    )
+    balance = Invoice.total - func.coalesce(payment_totals.c.total_paid, 0)
+    statement = (
+        select(Invoice.due_date, balance)
+        .outerjoin(payment_totals, payment_totals.c.invoice_id == Invoice.id)
+        .where(
+            Invoice.owner_id == owner_id,
+            Invoice.currency == currency,
+            Invoice.issue_date <= as_of_date,
+            Invoice.due_date <= due_date_to,
+            Invoice.status != InvoiceStatus.CANCELLED,
+            balance > 0,
+        )
+        .order_by(Invoice.due_date)
+    )
+    return [
+        (due_date, Decimal(amount))
+        for due_date, amount in db.execute(statement).all()
+    ]

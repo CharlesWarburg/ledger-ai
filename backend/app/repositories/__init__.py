@@ -35,7 +35,10 @@ from app.repositories.invoice import (
     replace_invoice_line_items,
     update_invoice_record,
 )
-from app.repositories.insights import list_duplicate_invoice_candidates
+from app.repositories.insights import (
+    list_duplicate_invoice_candidates,
+    list_outstanding_invoice_balances,
+)
 from app.repositories.payment import (
     add_payment_record,
     delete_payment_record,
@@ -79,6 +82,7 @@ __all__ = [
     "list_customer_records",
     "list_document_records",
     "list_duplicate_invoice_candidates",
+    "list_outstanding_invoice_balances",
     "replace_invoice_line_items",
     "total_paid_for_invoice",
     "update_customer_record",

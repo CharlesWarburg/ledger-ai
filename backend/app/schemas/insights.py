@@ -30,3 +30,27 @@ class DuplicateInvoiceInsightsResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     matches: list[DuplicateInvoiceMatch]
+
+
+class CashFlowForecastPoint(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    month: date
+    expected_receipts: Decimal = Field(ge=0)
+    overdue_receipts: Decimal = Field(ge=0)
+    invoice_count: int = Field(ge=0)
+
+
+class CashFlowForecastResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    currency: str = Field(min_length=3, max_length=3)
+    as_of_date: date
+    months: list[CashFlowForecastPoint]
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().upper()
+        return value

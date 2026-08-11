@@ -66,6 +66,8 @@ from app.services.invoice import (
 from app.services.insights import (
     InsightCurrencyError,
     InsightDateRangeError,
+    InsightForecastPeriodError,
+    get_cash_flow_forecast,
     list_duplicate_invoices,
 )
 from app.services.payment import (
@@ -122,6 +124,7 @@ __all__ = [
     "InvoiceNumberAlreadyExistsError",
     "InsightCurrencyError",
     "InsightDateRangeError",
+    "InsightForecastPeriodError",
     "PaymentDateError",
     "PaymentExceedsOutstandingBalanceError",
     "PaymentFilterDateError",
@@ -148,6 +151,7 @@ __all__ = [
     "get_document_processing",
     "get_document_processing_for_source_document",
     "get_dashboard",
+    "get_cash_flow_forecast",
     "get_invoice",
     "get_outstanding_balance",
     "get_payment",

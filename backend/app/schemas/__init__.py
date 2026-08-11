@@ -30,6 +30,8 @@ from app.schemas.invoice import (
     InvoiceUpdate,
 )
 from app.schemas.insights import (
+    CashFlowForecastPoint,
+    CashFlowForecastResponse,
     DuplicateInvoiceInsightsResponse,
     DuplicateInvoiceMatch,
 )
@@ -42,6 +44,8 @@ __all__ = [
     "CustomerUpdate",
     "DashboardKpis",
     "DashboardResponse",
+    "CashFlowForecastPoint",
+    "CashFlowForecastResponse",
     "DuplicateInvoiceInsightsResponse",
     "DuplicateInvoiceMatch",
     "DocumentCreate",
