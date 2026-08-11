@@ -34,6 +34,15 @@ from app.services.document import (
     list_documents,
     update_document,
 )
+from app.services.document_processing import (
+    DocumentProcessingExecutionError,
+    DocumentProcessingInProgressError,
+    DocumentProcessingInvalidStateError,
+    DocumentProcessingNotFoundError,
+    get_document_processing,
+    get_document_processing_for_source_document,
+    process_document,
+)
 from app.services.invoice import (
     InvalidInvoiceStatusTransitionError,
     InvoiceCustomerNotFoundError,
@@ -87,6 +96,10 @@ __all__ = [
     "DashboardPeriodError",
     "DocumentInvoiceNotFoundError",
     "DocumentNotFoundError",
+    "DocumentProcessingExecutionError",
+    "DocumentProcessingInProgressError",
+    "DocumentProcessingInvalidStateError",
+    "DocumentProcessingNotFoundError",
     "InvalidInvoiceStatusTransitionError",
     "InvoiceCustomerNotFoundError",
     "InvoiceExtractionProvider",
@@ -116,6 +129,8 @@ __all__ = [
     "get_customer",
     "get_document",
     "get_document_content",
+    "get_document_processing",
+    "get_document_processing_for_source_document",
     "get_dashboard",
     "get_invoice",
     "get_outstanding_balance",
@@ -127,6 +142,7 @@ __all__ = [
     "list_payments",
     "register_user",
     "read_stored_upload",
+    "process_document",
     "store_upload",
     "update_customer",
     "update_document",
