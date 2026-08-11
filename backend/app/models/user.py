@@ -9,6 +9,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.models.customer import Customer
     from app.models.document import Document
+    from app.models.document_processing import DocumentProcessing
     from app.models.invoice import Invoice
     from app.models.payment import Payment
 
@@ -79,6 +80,10 @@ class User(Base):
         passive_deletes=True,
     )
     documents: Mapped[list["Document"]] = relationship(
+        back_populates="owner",
+        passive_deletes=True,
+    )
+    document_processings: Mapped[list["DocumentProcessing"]] = relationship(
         back_populates="owner",
         passive_deletes=True,
     )

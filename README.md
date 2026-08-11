@@ -1,6 +1,6 @@
 # Ledger AI
 
-Ledger AI is an early-stage accounting application intended to combine customer, invoice, and payment management with document processing and financial insights. The repository currently contains the project foundation only: a starter web application, a minimal API, and a PostgreSQL development service.
+Ledger AI is an early-stage accounting application intended to combine customer, invoice, and payment management with document processing and financial insights. The repository currently contains the project foundation, complete authentication, and ownership-scoped Customer CRUD.
 
 ## Tech stack
 
@@ -17,10 +17,10 @@ Direct backend dependencies are pinned in `backend/requirements.txt`.
 The repository is split into two applications:
 
 - `frontend/` is a Next.js App Router application. It currently contains the generated single-page starter UI and no API client, application components, state layer, or feature modules.
-- `backend/` is a synchronous FastAPI application. Configuration is loaded from `backend/.env`; SQLAlchemy provides an engine, session factory, declarative base, and request-scoped database dependency. The API currently consists of direct route handlers in `app/main.py`.
+- `backend/` is a synchronous FastAPI application. Configuration is loaded from `backend/.env`; SQLAlchemy provides an engine, session factory, declarative base, and request-scoped database dependency. Authentication, Customer, and Invoice features use API, service, repository, schema, and model layers.
 - PostgreSQL runs separately through the root `docker-compose.yml` and publishes container port `5432` on host port `5433`.
 
-The authentication slice uses API, service, repository, schema, and model layers. Other business domains have not been implemented yet.
+Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 
 ## Features completed
 
@@ -41,8 +41,10 @@ The authentication slice uses API, service, repository, schema, and model layers
 - User registration with duplicate-email protection
 - User login with bearer access-token issuance
 - Authenticated current-user lookup and reusable route protection
+- Ownership-scoped Customer CRUD API
+- Ownership-scoped Invoice CRUD API with line items, VAT calculations, and controlled status transitions
 
-Authentication endpoints and security logic are not implemented yet. Customer, invoice, payment, dashboard, upload, AI, and reporting features also remain unstarted.
+Payment, dashboard, upload, AI, and reporting features remain unstarted.
 
 ## Roadmap
 
@@ -70,50 +72,67 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Current user endpoint
   - ✅ Protected-route dependency
   - ✅ Roles and administrator-route enforcement
-- ⬜ Phase 3 — Customers
-  - ⬜ Customer model
-  - ⬜ User ownership relationship
-  - ⬜ Customer migration
-  - ⬜ Customer request and response schemas
-  - ⬜ Customer repository and service
-  - ⬜ Create customer
-  - ⬜ List customers
-  - ⬜ Get customer
-  - ⬜ Update customer
-  - ⬜ Delete customer
-  - ⬜ Ownership enforcement
-- ⬜ Phase 4 — Invoices
-  - ⬜ Invoice model
-  - ⬜ Invoice migration
-  - ⬜ Invoice request and response schemas
-  - ⬜ Invoice repository and service
-  - ⬜ Create invoice
-  - ⬜ List invoices
-  - ⬜ Get invoice
-  - ⬜ Update invoice
-  - ⬜ Delete invoice
-  - ⬜ Invoice status
-  - ⬜ VAT
-  - ⬜ Due dates
-- ⬜ Phase 5 — Payments
-  - ⬜ Payment model
-  - ⬜ Payment migration
-  - ⬜ Payment schemas
-  - ⬜ Payment repository and service
-  - ⬜ Record payments
-  - ⬜ Partial payments
-  - ⬜ Outstanding balances
-- ⬜ Phase 6 — Dashboard
-  - ⬜ Revenue
-  - ⬜ Outstanding invoices
-  - ⬜ Cash flow
-  - ⬜ Charts
-  - ⬜ Recent activity
-- ⬜ Phase 7 — File Upload
-  - ⬜ PDF uploads
-  - ⬜ Image uploads
-  - ⬜ Receipt uploads
-- ⬜ Phase 8 — AI Invoice Processing
+- ✅ Phase 3 — Customers
+  - ✅ Customer model
+  - ✅ User ownership relationship
+  - ✅ Customer migration
+  - ✅ Customer request and response schemas
+  - ✅ Customer repository and service
+  - ✅ Create customer
+  - ✅ List customers
+  - ✅ Get customer
+  - ✅ Update customer
+  - ✅ Delete customer
+  - ✅ Ownership enforcement
+- ✅ Phase 4 — Invoices
+  - ✅ Invoice model
+  - ✅ Invoice line-item model
+  - ✅ User and Customer relationships
+  - ✅ Invoice migration
+  - ✅ Invoice request and response schemas
+  - ✅ Invoice repository and service
+  - ✅ Create invoice
+  - ✅ List invoices
+  - ✅ Get invoice
+  - ✅ Update invoice
+  - ✅ Delete invoice
+  - ✅ Invoice status workflow
+  - ✅ VAT calculations
+  - ✅ Due-date validation
+- ✅ Phase 5 — Payments
+  - ✅ Payment model
+  - ✅ User and Invoice relationships
+  - ✅ Payment migration
+  - ✅ Payment schemas
+  - ✅ Payment repository and service
+  - ✅ Record and manage payments
+  - ✅ Partial-payment logic
+  - ✅ Outstanding-balance calculations
+- 🚧 Phase 6 — Dashboard
+  - ✅ Dashboard response schemas
+  - ✅ Dashboard aggregate repository
+  - ✅ Dashboard service
+  - ✅ Protected Dashboard endpoint
+  - ✅ Revenue
+  - ✅ Outstanding invoices
+  - ✅ Cash flow
+  - 🚧 Charts (data queries complete; frontend pending)
+  - ✅ Recent activity
+  - ✅ Drill-through filters
+  - ✅ Dashboard-wide cross-filtering
+- ✅ Phase 7 — File Upload
+  - ✅ Document metadata model
+  - ✅ User and optional Invoice relationships
+  - ✅ Document migration
+  - ✅ Document metadata schemas
+  - ✅ File validation and local development storage
+  - ✅ Document repository and service
+  - ✅ Protected upload and document-management routes
+  - ✅ PDF uploads
+  - ✅ Image uploads
+  - ✅ Receipt uploads
+- 🚧 Phase 8 — AI Invoice Processing
+  - ✅ Document Processing lifecycle model
   - ⬜ OCR
   - ⬜ Structured outputs
   - ⬜ Automatic invoice creation
@@ -200,17 +219,16 @@ ledger-ai/
 ├── backend/
 │   ├── alembic/             # Migration environment and future revisions
 │   ├── app/
-│   │   ├── api/             # Authentication HTTP routes
+│   │   ├── api/             # Authentication, Customer, and Invoice routes
 │   │   ├── core/
 │   │   │   ├── config.py    # Pydantic environment settings
 │   │   │   └── logging.py   # Application logging configuration
 │   │   ├── db/
 │   │   │   └── database.py  # SQLAlchemy engine and sessions
-│   │   ├── models/
-│   │   │   └── user.py      # Empty placeholder
-│   │   ├── repositories/    # User database access
-│   │   ├── schemas/         # Empty placeholder
-│   │   ├── services/        # Authentication business logic
+│   │   ├── models/          # User, Customer, Invoice, and line-item tables
+│   │   ├── repositories/    # User, Customer, and Invoice database access
+│   │   ├── schemas/         # API request and response validation
+│   │   ├── services/        # Authentication, Customer, and Invoice logic
 │   │   └── main.py          # FastAPI app and two health routes
 │   ├── .env.example
 │   ├── alembic.ini
@@ -227,7 +245,7 @@ Ignored local items such as `backend/.env`, `backend/.venv`, `node_modules`, and
 
 ## Development phases
 
-Phases 1 and 2 are complete. The next implementation phase is Phase 3, beginning with the Customer model and migration, followed by Customer CRUD schemas, repository/service operations, protected API routes, and ownership enforcement.
+The backend for Phases 1–5 and 7 is complete, and Phase 8 is in progress with the Document Processing lifecycle model. Dashboard frontend charts remain deferred.
 
 ## Future work
 

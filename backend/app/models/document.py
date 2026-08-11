@@ -18,6 +18,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
 if TYPE_CHECKING:
+    from app.models.document_processing import DocumentProcessing
     from app.models.invoice import Invoice
     from app.models.user import User
 
@@ -79,4 +80,10 @@ class Document(Base):
     owner: Mapped["User"] = relationship(back_populates="documents")
     invoice: Mapped[Optional["Invoice"]] = relationship(
         back_populates="documents"
+    )
+    processing: Mapped[Optional["DocumentProcessing"]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        uselist=False,
     )
