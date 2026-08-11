@@ -4,6 +4,12 @@ from app.services.auth import (
     authenticate_user,
     register_user,
 )
+from app.services.ai_provider import (
+    AIProviderNotConfiguredError,
+    AIProviderProcessingError,
+    InvoiceExtractionProvider,
+    UnconfiguredInvoiceExtractionProvider,
+)
 from app.services.customer import (
     CustomerNotFoundError,
     create_customer,
@@ -69,6 +75,8 @@ from app.services.storage import (
 )
 
 __all__ = [
+    "AIProviderNotConfiguredError",
+    "AIProviderProcessingError",
     "EmailAlreadyRegisteredError",
     "FileStorageError",
     "FileValidationError",
@@ -81,6 +89,7 @@ __all__ = [
     "DocumentNotFoundError",
     "InvalidInvoiceStatusTransitionError",
     "InvoiceCustomerNotFoundError",
+    "InvoiceExtractionProvider",
     "InvoiceDateError",
     "InvoiceFilterDateError",
     "InvoiceNotFoundError",
@@ -92,6 +101,7 @@ __all__ = [
     "PaymentInvoiceStatusError",
     "PaymentNotFoundError",
     "ValidatedUpload",
+    "UnconfiguredInvoiceExtractionProvider",
     "authenticate_user",
     "create_customer",
     "create_document",
