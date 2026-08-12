@@ -46,6 +46,14 @@ class ExtractedInvoiceLineItem(BaseModel):
             return value or None
         return value
 
+    @field_validator("quantity", "unit_price", "vat_rate", mode="before")
+    @classmethod
+    def normalize_optional_decimal(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = value.strip()
+            return value or None
+        return value
+
 
 class InvoiceExtraction(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -95,6 +103,37 @@ class InvoiceExtraction(BaseModel):
         if isinstance(value, str):
             value = value.strip().upper()
             return value or None
+        return value
+
+    @field_validator(
+        "subtotal",
+        "vat_total",
+        "total",
+        "confidence",
+        mode="before",
+    )
+    @classmethod
+    def normalize_optional_number(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = value.strip()
+            return value or None
+        return value
+
+    @field_validator("issue_date", "due_date", mode="before")
+    @classmethod
+    def normalize_invoice_date(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            return None
+
+        for date_format in ("%Y-%m-%d", "%d/%m/%Y", "%d %B %Y"):
+            try:
+                return datetime.strptime(normalized, date_format).date()
+            except ValueError:
+                continue
         return value
 
     @model_validator(mode="after")

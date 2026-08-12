@@ -99,6 +99,7 @@ class OpenAIInvoiceExtractionProvider:
                                 "text": (
                                     "Extract invoice fields from this document. "
                                     "Return only values supported by the schema. "
+                                    "Return dates in YYYY-MM-DD format. "
                                     "Leave uncertain fields empty; do not invent values."
                                 ),
                             },

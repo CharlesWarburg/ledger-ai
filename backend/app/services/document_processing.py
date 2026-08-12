@@ -188,9 +188,12 @@ def review_document_processing(
         owner_id,
         document_id,
     )
-    if processing.status != DocumentProcessingStatus.REVIEW_REQUIRED:
+    if processing.status not in {
+        DocumentProcessingStatus.REVIEW_REQUIRED,
+        DocumentProcessingStatus.COMPLETED,
+    } or processing.created_invoice_id is not None:
         raise DocumentProcessingInvalidStateError(
-            "Only processing records awaiting review can be approved"
+            "Only unconsumed processing records can be reviewed"
         )
 
     update_document_processing_record(
