@@ -50,8 +50,10 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Invoice management UI with customer selection, editable line items, VAT previews, filters, details, status transitions, and deletion
 - Payment management UI with payable-invoice selection, partial payments, editing, deletion, and calculated outstanding balances
 - Document UI with validated uploads, downloads, AI processing, extraction review, and invoice creation
+- Dashboard UI with KPI cards, charts, filters, drill-through views, and cross-filtering
+- AI insights, financial assistant, monthly report previews, and CSV/PDF downloads
 
-Payment, dashboard, upload, AI, and reporting features remain unstarted.
+Frontend responsive, accessibility, and integration-test polishing remains for Phase 10.
 
 ## Roadmap
 
@@ -212,10 +214,10 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ KPI cards and charts
   - ✅ Dashboard filters and drill-through views
   - ✅ Cross-filtering between dashboard data
-- ⬜ Frontend Phase 9 — Insights, assistant, and reporting
-  - ⬜ Duplicate invoices, cash-flow forecast, and slow-payer insights
-  - ⬜ Executive summary and financial assistant
-  - ⬜ CSV and PDF report workflows
+- ✅ Frontend Phase 9 — Insights, assistant, and reporting
+  - ✅ Duplicate invoices, cash-flow forecast, and slow-payer insights
+  - ✅ Executive summary and financial assistant
+  - ✅ CSV and PDF report workflows
 - ⬜ Frontend Phase 10 — Quality and integration
   - ⬜ Responsive design polish
   - ⬜ Accessibility review

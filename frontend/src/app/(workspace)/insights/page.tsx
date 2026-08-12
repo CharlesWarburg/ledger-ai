@@ -1,2 +1,1 @@
-import { PlaceholderPage } from "@/components/ui/placeholder-page";
-export default function Page() { return <PlaceholderPage description="Spot trends, risks, and opportunities in your finances." title="Insights" />; }
+import{InsightsView}from"@/components/phase9/phase9-views";export default function Page(){return <InsightsView/>}

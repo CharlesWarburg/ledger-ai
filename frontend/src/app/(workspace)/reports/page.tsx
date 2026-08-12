@@ -1,2 +1,1 @@
-import { PlaceholderPage } from "@/components/ui/placeholder-page";
-export default function Page() { return <PlaceholderPage description="Export monthly, invoice, and payment reports." title="Reports" />; }
+import{ReportsView}from"@/components/phase9/phase9-views";export default function Page(){return <ReportsView/>}
