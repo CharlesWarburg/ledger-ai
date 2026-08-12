@@ -1,4 +1,5 @@
 import base64
+import logging
 from typing import Protocol, runtime_checkable
 
 from openai import OpenAI, OpenAIError
@@ -6,6 +7,9 @@ from openai import OpenAI, OpenAIError
 from app.schemas.document_processing import InvoiceExtraction
 from app.schemas.insights import ExecutiveSummaryResponse
 from app.schemas.assistant import FinancialAssistantAnswer
+
+
+logger = logging.getLogger(__name__)
 
 
 class AIProviderNotConfiguredError(RuntimeError):
@@ -105,9 +109,21 @@ class OpenAIInvoiceExtractionProvider:
                 text_format=InvoiceExtraction,
             )
         except OpenAIError as exc:
+            logger.exception(
+                "OpenAI request failed | operation=invoice_extraction model=%s error_type=%s",
+                self._model,
+                type(exc).__name__,
+            )
             raise AIProviderProcessingError(
                 "OpenAI invoice extraction request failed"
             ) from exc
+        except Exception as exc:
+            logger.exception(
+                "AI response validation failed | operation=invoice_extraction model=%s error_type=%s",
+                self._model,
+                type(exc).__name__,
+            )
+            raise
 
         extraction = response.output_parsed
         if extraction is None:
@@ -132,9 +148,21 @@ class OpenAIInvoiceExtractionProvider:
                 text_format=ExecutiveSummaryResponse,
             )
         except OpenAIError as exc:
+            logger.exception(
+                "OpenAI request failed | operation=executive_summary model=%s error_type=%s",
+                self._model,
+                type(exc).__name__,
+            )
             raise AIProviderProcessingError(
                 "OpenAI executive-summary request failed"
             ) from exc
+        except Exception as exc:
+            logger.exception(
+                "AI response validation failed | operation=executive_summary model=%s error_type=%s",
+                self._model,
+                type(exc).__name__,
+            )
+            raise
         if response.output_parsed is None:
             raise AIProviderProcessingError(
                 "OpenAI did not return a structured executive summary"
@@ -158,7 +186,19 @@ class OpenAIInvoiceExtractionProvider:
                 text_format=FinancialAssistantAnswer,
             )
         except OpenAIError as exc:
+            logger.exception(
+                "OpenAI request failed | operation=financial_assistant model=%s error_type=%s",
+                self._model,
+                type(exc).__name__,
+            )
             raise AIProviderProcessingError("OpenAI assistant request failed") from exc
+        except Exception as exc:
+            logger.exception(
+                "AI response validation failed | operation=financial_assistant model=%s error_type=%s",
+                self._model,
+                type(exc).__name__,
+            )
+            raise
         if response.output_parsed is None:
             raise AIProviderProcessingError("OpenAI did not return a structured answer")
         return response.output_parsed

@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import Optional
 from urllib.parse import quote
@@ -51,6 +52,7 @@ from app.services.ai_provider import (
 )
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+logger = logging.getLogger(__name__)
 
 
 def _document_not_found() -> HTTPException:
@@ -145,6 +147,11 @@ async def upload_document_endpoint(
     except FileValidationError as exc:
         raise _file_validation_error(exc) from exc
     except FileStorageError as exc:
+        logger.exception(
+            "Document upload storage failed | owner_id=%s error_type=%s",
+            current_user.id,
+            type(exc).__name__,
+        )
         raise _storage_error(exc) from exc
     finally:
         await file.close()
@@ -198,6 +205,12 @@ def download_document_endpoint(
     except DocumentNotFoundError as exc:
         raise _document_not_found() from exc
     except FileStorageError as exc:
+        logger.exception(
+            "Document download storage failed | document_id=%s owner_id=%s error_type=%s",
+            document_id,
+            current_user.id,
+            type(exc).__name__,
+        )
         raise _storage_error(exc) from exc
     filename = quote(document.original_filename)
     return Response(
@@ -355,4 +368,10 @@ def delete_document_endpoint(
     except DocumentNotFoundError as exc:
         raise _document_not_found() from exc
     except FileStorageError as exc:
+        logger.exception(
+            "Document deletion storage failed | document_id=%s owner_id=%s error_type=%s",
+            document_id,
+            current_user.id,
+            type(exc).__name__,
+        )
         raise _storage_error(exc) from exc

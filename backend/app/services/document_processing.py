@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,10 +22,13 @@ from app.repositories.document import update_document_record
 from app.services.ai_provider import InvoiceExtractionProvider
 from app.services.document import get_document
 from app.services.invoice import create_invoice
-from app.services.storage import read_stored_upload
 from app.schemas.document_processing import InvoiceExtraction
 from app.schemas.invoice import InvoiceCreate, InvoiceLineItemCreate
 from app.models.invoice import Invoice
+from app.services.storage import read_stored_upload
+
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentProcessingNotFoundError(ValueError):
@@ -147,6 +151,13 @@ def process_document(
         content = read_stored_upload(document.storage_key, upload_directory)
         extraction = provider.extract_invoice(content, document.content_type)
     except Exception as exc:
+        logger.exception(
+            "Document processing failed | document_id=%s owner_id=%s provider=%s error_type=%s",
+            document_id,
+            owner_id,
+            provider.name,
+            type(exc).__name__,
+        )
         _mark_processing_failed(db, processing, exc)
         raise DocumentProcessingExecutionError(
             "Document processing failed"

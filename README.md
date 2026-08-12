@@ -52,6 +52,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Document UI with validated uploads, downloads, AI processing, extraction review, and invoice creation
 - Dashboard UI with KPI cards, charts, filters, drill-through views, and cross-filtering
 - AI insights, financial assistant, monthly report previews, and CSV/PDF downloads
+- Safe diagnostic backend logging for AI, document-storage, processing, and unhandled service failures
 
 Frontend responsive, accessibility, and integration-test polishing remains for Phase 10.
 

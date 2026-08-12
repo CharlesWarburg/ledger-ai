@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -25,15 +25,33 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logger.info(
-        "Application starting | app=%s environment=%s",
+        "Application starting | app=%s environment=%s ai_provider_configured=%s ai_model=%s",
         settings.app_name,
         settings.environment,
+        bool(settings.openai_api_key.get_secret_value()),
+        settings.openai_invoice_model,
     )
     yield
     logger.info("Application stopping | app=%s", settings.app_name)
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+
+@app.middleware("http")
+async def log_unhandled_errors(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.exception(
+            "Unhandled request error | method=%s path=%s error_type=%s",
+            request.method,
+            request.url.path,
+            type(exc).__name__,
+        )
+        raise
+
+
 app.include_router(auth_router)
 app.include_router(assistant_router)
 app.include_router(customers_router)
