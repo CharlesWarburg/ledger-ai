@@ -47,6 +47,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Frontend registration, login, logout, HTTP-only JWT sessions, protected routing, and a basic signed-in workspace preview
 - Responsive frontend application shell with persistent navigation, shared page patterns, and reusable loading, empty, and error states
 - Customer management UI with search, customer details, and create, edit, and delete workflows
+- Invoice management UI with customer selection, editable line items, VAT previews, filters, details, status transitions, and deletion
 
 Payment, dashboard, upload, AI, and reporting features remain unstarted.
 
@@ -194,10 +195,10 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
 - ✅ Frontend Phase 4 — Customers
   - ✅ Customer list and detail views
   - ✅ Create, edit, and delete workflows
-- ⬜ Frontend Phase 5 — Invoices
-  - ⬜ Invoice list and detail views
-  - ⬜ Invoice creation and editing
-  - ⬜ Line-item management and status workflows
+- ✅ Frontend Phase 5 — Invoices
+  - ✅ Invoice list and detail views
+  - ✅ Invoice creation and editing
+  - ✅ Line-item management and status workflows
 - ⬜ Frontend Phase 6 — Payments
   - ⬜ Payment recording and management
   - ⬜ Outstanding-balance views
