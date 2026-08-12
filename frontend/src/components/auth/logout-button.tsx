@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function LogoutButton() {
+export function LogoutButton({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -18,8 +18,8 @@ export function LogoutButton() {
   }
 
   return (
-    <button className="ghost-button" disabled={pending} onClick={logout} type="button">
-      {pending ? "Signing out…" : "Sign out"}
+    <button aria-label="Sign out" className={compact ? "signout-button compact" : "signout-button"} disabled={pending} onClick={logout} type="button">
+      {pending ? "…" : compact ? "↗" : "Sign out"}
     </button>
   );
 }

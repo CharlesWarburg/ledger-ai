@@ -45,6 +45,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Ownership-scoped Invoice CRUD API with line items, VAT calculations, and controlled status transitions
 - Typed frontend API contracts, authenticated request helpers, normalized FastAPI errors, and an environment-configured backend proxy
 - Frontend registration, login, logout, HTTP-only JWT sessions, protected routing, and a basic signed-in workspace preview
+- Responsive frontend application shell with persistent navigation, shared page patterns, and reusable loading, empty, and error states
 
 Payment, dashboard, upload, AI, and reporting features remain unstarted.
 
@@ -185,10 +186,10 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Logout
   - ✅ JWT session and token handling
   - ✅ Protected routes
-- ⬜ Frontend Phase 3 — Application shell
-  - ⬜ Responsive application layout and navigation
-  - ⬜ Reusable UI components
-  - ⬜ Loading, empty, and error states
+- ✅ Frontend Phase 3 — Application shell
+  - ✅ Responsive application layout and navigation
+  - ✅ Reusable UI components
+  - ✅ Loading, empty, and error states
 - ⬜ Frontend Phase 4 — Customers
   - ⬜ Customer list and detail views
   - ⬜ Create, edit, and delete workflows

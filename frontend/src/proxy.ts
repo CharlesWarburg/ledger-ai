@@ -8,7 +8,7 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/register";
 
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !hasSession) {
+  if (!isAuthPage && request.nextUrl.pathname !== "/" && !hasSession) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -26,5 +26,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/login", "/register", "/dashboard/:path*"],
+  matcher: ["/", "/login", "/register", "/dashboard/:path*", "/customers/:path*", "/invoices/:path*", "/payments/:path*", "/documents/:path*", "/insights/:path*", "/assistant/:path*", "/reports/:path*"],
 };
