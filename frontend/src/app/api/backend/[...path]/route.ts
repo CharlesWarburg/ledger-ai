@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "@/lib/api/config";
+import { getSessionToken } from "@/lib/auth/session";
 
 const ALLOWED_ROUTE_ROOTS = new Set([
   "assistant",
@@ -14,7 +15,7 @@ const ALLOWED_ROUTE_ROOTS = new Set([
   "reports",
 ]);
 
-const REQUEST_HEADERS = ["accept", "authorization", "content-type"];
+const REQUEST_HEADERS = ["accept", "content-type"];
 const RESPONSE_HEADERS = [
   "cache-control",
   "content-disposition",
@@ -53,6 +54,13 @@ async function proxyRequest(
     if (value) {
       headers.set(name, value);
     }
+  }
+  const sessionToken = await getSessionToken();
+  const requestAuthorization = request.headers.get("authorization");
+  if (sessionToken) {
+    headers.set("authorization", `Bearer ${sessionToken}`);
+  } else if (requestAuthorization) {
+    headers.set("authorization", requestAuthorization);
   }
 
   try {

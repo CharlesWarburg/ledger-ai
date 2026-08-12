@@ -44,6 +44,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Ownership-scoped Customer CRUD API
 - Ownership-scoped Invoice CRUD API with line items, VAT calculations, and controlled status transitions
 - Typed frontend API contracts, authenticated request helpers, normalized FastAPI errors, and an environment-configured backend proxy
+- Frontend registration, login, logout, HTTP-only JWT sessions, protected routing, and a basic signed-in workspace preview
 
 Payment, dashboard, upload, AI, and reporting features remain unstarted.
 
@@ -179,11 +180,11 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Shared TypeScript API contracts
   - ✅ Authenticated API request wrapper
   - ✅ Consistent API error handling
-- ⬜ Frontend Phase 2 — Authentication
-  - ⬜ Registration and login
-  - ⬜ Logout
-  - ⬜ JWT session and token handling
-  - ⬜ Protected routes
+- ✅ Frontend Phase 2 — Authentication
+  - ✅ Registration and login
+  - ✅ Logout
+  - ✅ JWT session and token handling
+  - ✅ Protected routes
 - ⬜ Frontend Phase 3 — Application shell
   - ⬜ Responsive application layout and navigation
   - ⬜ Reusable UI components
