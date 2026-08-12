@@ -1,2 +1,5 @@
-import { PlaceholderPage } from "@/components/ui/placeholder-page";
-export default function Page() { return <PlaceholderPage description="Manage the people and businesses you invoice." title="Customers" />; }
+import { CustomersView } from "@/components/customers/customers-view";
+
+export default function CustomersPage() {
+  return <CustomersView />;
+}
