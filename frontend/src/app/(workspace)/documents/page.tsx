@@ -1,2 +1,2 @@
-import { PlaceholderPage } from "@/components/ui/placeholder-page";
-export default function Page() { return <PlaceholderPage description="Upload files and turn paperwork into structured data." title="Documents" />; }
+import { DocumentsView } from "@/components/documents/documents-view";
+export default function DocumentsPage(){return <DocumentsView/>;}

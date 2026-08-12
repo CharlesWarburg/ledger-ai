@@ -49,6 +49,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Customer management UI with search, customer details, and create, edit, and delete workflows
 - Invoice management UI with customer selection, editable line items, VAT previews, filters, details, status transitions, and deletion
 - Payment management UI with payable-invoice selection, partial payments, editing, deletion, and calculated outstanding balances
+- Document UI with validated uploads, downloads, AI processing, extraction review, and invoice creation
 
 Payment, dashboard, upload, AI, and reporting features remain unstarted.
 
@@ -203,10 +204,10 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
 - ✅ Frontend Phase 6 — Payments
   - ✅ Payment recording and management
   - ✅ Outstanding-balance views
-- ⬜ Frontend Phase 7 — Documents and AI processing
-  - ⬜ Document upload and management
-  - ⬜ AI processing status and review
-  - ⬜ Invoice creation from approved extraction data
+- ✅ Frontend Phase 7 — Documents and AI processing
+  - ✅ Document upload and management
+  - ✅ AI processing status and review
+  - ✅ Invoice creation from approved extraction data
 - ⬜ Frontend Phase 8 — Dashboard
   - ⬜ KPI cards and charts
   - ⬜ Dashboard filters and drill-through views
