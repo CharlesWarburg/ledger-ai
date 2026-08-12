@@ -1,0 +1,53 @@
+"use client";
+
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { apiRequest, ApiError } from "@/lib/api";
+import type { CustomerResponse, InvoiceResponse, PaymentCreate, PaymentResponse } from "@/lib/api";
+import { PageHeading } from "@/components/ui/page-heading";
+
+const today = new Date().toISOString().slice(0, 10);
+const methods = ["bank transfer", "card", "cash", "cheque", "direct debit", "other"];
+function message(error: unknown) { return error instanceof ApiError ? error.message : "Unable to complete this request."; }
+function money(value: string | number, currency = "GBP") { return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(Number(value)); }
+
+export function PaymentsView() {
+  const [payments, setPayments] = useState<PaymentResponse[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceResponse[]>([]);
+  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
+  const [loading, setLoading] = useState(true); const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState(""); const [selected, setSelected] = useState<PaymentResponse | null>(null);
+  const [panel, setPanel] = useState<"create" | "edit" | null>(null); const [invoiceId, setInvoiceId] = useState("");
+  const [saving, setSaving] = useState(false); const [formError, setFormError] = useState<string | null>(null); const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const fetchAll = () => Promise.all([
+    apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100 } }),
+    apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100 } }),
+    apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } }),
+  ]);
+  function load() { setLoading(true); setError(null); fetchAll().then(([p,i,c]) => { setPayments(p); setInvoices(i); setCustomers(c); }).catch((reason) => setError(message(reason))).finally(() => setLoading(false)); }
+  useEffect(() => { let cancelled=false; fetchAll().then(([p,i,c]) => { if(!cancelled){setPayments(p);setInvoices(i);setCustomers(c);} }).catch((reason)=>{if(!cancelled)setError(message(reason));}).finally(()=>{if(!cancelled)setLoading(false);}); return()=>{cancelled=true;}; },[]);
+
+  const invoiceMap = useMemo(() => new Map(invoices.map((invoice) => [invoice.id, invoice])), [invoices]);
+  const customerMap = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
+  const paidByInvoice = useMemo(() => { const map = new Map<string,number>(); payments.forEach((p)=>map.set(p.invoice_id,(map.get(p.invoice_id)??0)+Number(p.amount))); return map; },[payments]);
+  const outstanding = (invoice: InvoiceResponse) => Math.max(0, Number(invoice.total) - (paidByInvoice.get(invoice.id) ?? 0));
+  const payable = invoices.filter((invoice) => (invoice.status === "sent" || invoice.status === "overdue") && outstanding(invoice) > 0);
+  const visible = payments.filter((payment) => { const invoice=invoiceMap.get(payment.invoice_id); const customer=invoice ? customerMap.get(invoice.customer_id)?.name : ""; const needle=query.toLowerCase(); return !needle || payment.reference?.toLowerCase().includes(needle) || invoice?.invoice_number.toLowerCase().includes(needle) || customer?.toLowerCase().includes(needle); });
+  const received = payments.reduce((sum,p)=>sum+Number(p.amount),0); const openBalance = invoices.reduce((sum,i)=>sum+outstanding(i),0);
+
+  function openCreate() { setSelected(null); setInvoiceId(payable[0]?.id ?? ""); setPanel("create"); setFormError(null); setConfirmDelete(false); }
+  function openEdit(payment: PaymentResponse) { setSelected(payment); setInvoiceId(payment.invoice_id); setPanel("edit"); setFormError(null); setConfirmDelete(false); }
+  async function refreshInvoices() { setInvoices(await apiRequest<InvoiceResponse[]>("/invoices", { query: { limit:100 } })); }
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setSaving(true); setFormError(null); const data=new FormData(event.currentTarget); const body:PaymentCreate={amount:String(data.get("amount")),payment_date:String(data.get("payment_date")),payment_method:String(data.get("payment_method")),reference:String(data.get("reference")??"").trim()||null,notes:String(data.get("notes")??"").trim()||null}; try { const saved=selected?await apiRequest<PaymentResponse>(`/payments/${selected.id}`,{method:"PATCH",body}):await apiRequest<PaymentResponse>(`/invoices/${invoiceId}/payments`,{method:"POST",body}); setPayments((current)=>selected?current.map((p)=>p.id===saved.id?saved:p):[saved,...current]); await refreshInvoices(); setPanel(null); } catch(reason){setFormError(message(reason));} finally{setSaving(false);} }
+  async function remove() { if(!selected)return; setSaving(true); try{await apiRequest<void>(`/payments/${selected.id}`,{method:"DELETE"});setPayments((current)=>current.filter((p)=>p.id!==selected.id));await refreshInvoices();setPanel(null);}catch(reason){setFormError(message(reason));}finally{setSaving(false);} }
+  const activeInvoice=invoiceMap.get(invoiceId); const maxAmount=activeInvoice ? outstanding(activeInvoice)+(selected&&selected.invoice_id===activeInvoice.id?Number(selected.amount):0) : 0;
+
+  return <>
+    <PageHeading actions={<button className="button" disabled={!payable.length} onClick={openCreate} type="button">Record payment</button>} description="Track money received and balances still due." title="Payments" />
+    <section className="payment-summary"><article><span>Total received</span><strong>{money(received)}</strong><small>{payments.length} recorded payments</small></article><article><span>Outstanding</span><strong>{money(openBalance)}</strong><small>Across {invoices.filter(i=>outstanding(i)>0).length} invoices</small></article><article><span>Payable invoices</span><strong>{payable.length}</strong><small>Sent or overdue</small></article></section>
+    {!payable.length&&!loading?<div className="inline-notice">No sent or overdue invoices currently accept payments.</div>:null}
+    <div className="customer-toolbar"><label className="search-field"><span>⌕</span><span className="sr-only">Search payments</span><input onChange={(e)=>setQuery(e.target.value)} placeholder="Search invoice, customer, or reference" type="search" value={query}/></label><span className="customer-count">{payments.length} payments</span></div>
+    {loading?<div className="customer-list loading-list">{[1,2,3].map(v=><div className="customer-row skeleton-row" key={v}/>)}</div>:error?<div className="state-card error-state"><div className="state-icon">!</div><h2>Payments couldn’t load</h2><p>{error}</p><button className="button" onClick={load}>Try again</button></div>:payments.length===0?<div className="state-card"><div className="state-icon">+</div><h2>No payments recorded</h2><p>Mark an invoice as sent, then record full or partial payments here.</p>{payable.length?<button className="button" onClick={openCreate}>Record payment</button>:null}</div>:<div className="payment-list"><div className="payment-list-head"><span>Date</span><span>Invoice</span><span>Customer</span><span>Method</span><span>Reference</span><span>Amount</span><span/></div>{visible.map((payment)=>{const invoice=invoiceMap.get(payment.invoice_id);return <button className="payment-row" key={payment.id} onClick={()=>openEdit(payment)}><span>{payment.payment_date}</span><strong>{invoice?.invoice_number??"—"}</strong><span>{invoice?customerMap.get(invoice.customer_id)?.name:"—"}</span><span className="capitalize">{payment.payment_method}</span><span>{payment.reference??"—"}</span><strong>{money(payment.amount,invoice?.currency)}</strong><span className="row-arrow">›</span></button>})}</div>}
+    {panel?<div className="drawer-layer"><button className="drawer-backdrop" onClick={()=>!saving&&setPanel(null)} aria-label="Close"/><aside className="customer-drawer" role="dialog" aria-modal="true"><div className="drawer-heading"><div><span className="kicker">{panel==="create"?"New payment":"Payment details"}</span><h2>{panel==="create"?"Record payment":selected?.reference||"Edit payment"}</h2></div><button className="icon-button" onClick={()=>setPanel(null)}>×</button></div><form className="customer-form" onSubmit={submit}><div className="form-section"><h3>Payment</h3><div className="form-grid"><label className="form-control full"><span>Invoice *</span><select disabled={panel==="edit"} name="invoice_id" onChange={(e)=>setInvoiceId(e.target.value)} required value={invoiceId}>{panel==="create"?<option disabled value="">Select invoice</option>:null}{(panel==="edit"&&activeInvoice?[activeInvoice]:payable).map(i=><option key={i.id} value={i.id}>{i.invoice_number} · {customerMap.get(i.customer_id)?.name} · {money(outstanding(i),i.currency)} due</option>)}</select></label><label className="form-control"><span>Amount * {activeInvoice?`(max ${money(maxAmount,activeInvoice.currency)})`:""}</span><input defaultValue={selected?.amount??""} max={maxAmount||undefined} min="0.01" name="amount" required step="0.01" type="number"/></label><label className="form-control"><span>Date *</span><input defaultValue={selected?.payment_date??today} max={today} min={activeInvoice?.issue_date} name="payment_date" required type="date"/></label><label className="form-control"><span>Method *</span><select defaultValue={selected?.payment_method??"bank transfer"} name="payment_method" required>{methods.map(method=><option key={method}>{method}</option>)}</select></label><label className="form-control"><span>Reference</span><input defaultValue={selected?.reference??""} maxLength={255} name="reference"/></label><label className="form-control full"><span>Notes</span><textarea defaultValue={selected?.notes??""} name="notes" rows={4}/></label></div></div>{formError?<p className="form-error">{formError}</p>:null}{confirmDelete?<div className="delete-confirm"><p>Delete this payment? The invoice balance and status will update.</p><div><button className="text-button" onClick={()=>setConfirmDelete(false)} type="button">Cancel</button><button className="danger-button" disabled={saving} onClick={()=>void remove()} type="button">Delete payment</button></div></div>:null}<div className="drawer-actions">{selected&&!confirmDelete?<button className="text-button danger-text" onClick={()=>setConfirmDelete(true)} type="button">Delete</button>:<span/>}<div><button className="button secondary" onClick={()=>setPanel(null)} type="button">Cancel</button><button className="button" disabled={saving} type="submit">{saving?"Saving…":selected?"Save changes":"Record payment"}</button></div></div></form></aside></div>:null}
+  </>;
+}
