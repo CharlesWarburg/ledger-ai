@@ -208,10 +208,10 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Document upload and management
   - ✅ AI processing status and review
   - ✅ Invoice creation from approved extraction data
-- ⬜ Frontend Phase 8 — Dashboard
-  - ⬜ KPI cards and charts
-  - ⬜ Dashboard filters and drill-through views
-  - ⬜ Cross-filtering between dashboard data
+- ✅ Frontend Phase 8 — Dashboard
+  - ✅ KPI cards and charts
+  - ✅ Dashboard filters and drill-through views
+  - ✅ Cross-filtering between dashboard data
 - ⬜ Frontend Phase 9 — Insights, assistant, and reporting
   - ⬜ Duplicate invoices, cash-flow forecast, and slow-payer insights
   - ⬜ Executive summary and financial assistant
