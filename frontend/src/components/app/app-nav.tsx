@@ -12,7 +12,6 @@ export const navigation: Array<{ href: string; icon: IconName; label: string }> 
   { href: "/payments", icon: "payments", label: "Payments" },
   { href: "/documents", icon: "documents", label: "Documents" },
   { href: "/insights", icon: "insights", label: "Insights" },
-  { href: "/assistant", icon: "assistant", label: "Assistant" },
   { href: "/reports", icon: "reports", label: "Reports" },
 ];
 

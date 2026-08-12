@@ -1,7 +1,6 @@
 import type { SVGProps } from "react";
 
 export type IconName =
-  | "assistant"
   | "customers"
   | "dashboard"
   | "documents"
@@ -17,7 +16,6 @@ const paths: Record<IconName, React.ReactNode> = {
   payments: <><rect x="2" y="5" width="20" height="14" rx="3" /><path d="M2 10h20M6 15h4" /></>,
   documents: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3" /></>,
   insights: <><path d="M3 3v18h18" /><path d="m7 16 4-5 3 3 5-7" /></>,
-  assistant: <><path d="M12 3a7 7 0 0 0-7 7v1a4 4 0 0 0 4 4h1l2 4 2-4h1a4 4 0 0 0 4-4v-1a7 7 0 0 0-7-7Z" /><path d="M9 10h.01M15 10h.01" /></>,
   reports: <><path d="M4 20V10M10 20V4M16 20v-7M22 20V7" /></>,
 };
 

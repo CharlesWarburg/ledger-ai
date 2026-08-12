@@ -51,7 +51,7 @@ Authentication plus ownership-scoped Customer and Invoice CRUD are implemented.
 - Payment management UI with payable-invoice selection, partial payments, editing, deletion, and calculated outstanding balances
 - Document UI with validated uploads, downloads, AI processing, extraction review, and invoice creation
 - Dashboard UI with KPI cards, charts, filters, drill-through views, and cross-filtering
-- AI insights, financial assistant, monthly report previews, and CSV/PDF downloads
+- AI insights, executive summaries, monthly report previews, and CSV/PDF downloads
 - Safe diagnostic backend logging for AI, document-storage, processing, and unhandled service failures
 
 Frontend responsive, accessibility, and integration-test polishing remains for Phase 10.
@@ -215,9 +215,9 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ KPI cards and charts
   - ✅ Dashboard filters and drill-through views
   - ✅ Cross-filtering between dashboard data
-- ✅ Frontend Phase 9 — Insights, assistant, and reporting
+- ✅ Frontend Phase 9 — Insights and reporting
   - ✅ Duplicate invoices, cash-flow forecast, and slow-payer insights
-  - ✅ Executive summary and financial assistant
+  - ✅ Executive summary
   - ✅ CSV and PDF report workflows
 - ⬜ Frontend Phase 10 — Quality and integration
   - ⬜ Responsive design polish
@@ -225,6 +225,8 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ⬜ Frontend integration testing
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the detailed audit, current task, blockers, and technical decisions.
+
+The protected backend assistant API is retained for possible future use, but the chatbot UI is intentionally excluded from the current product scope.
 
 ## How to run locally
 
