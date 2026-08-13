@@ -1248,6 +1248,31 @@ button:disabled {
 .dashboard-heading-actions .dashboard-primary-action{background:#111214;color:#fff;box-shadow:0 .65rem 1.5rem rgba(17,18,20,.17)}
 @media(max-width:600px){.dashboard-heading-actions{width:100%}.dashboard-heading-actions :is(a,button){flex:1;justify-content:center}}
 
+/* Shared compact application navigation */
+@media(min-width:761px){
+  .shell .sidebar{width:6.75rem;align-items:center;overflow:visible;border-right:1px solid rgba(117,126,145,.12);background-color:rgba(248,250,253,.86);background-image:radial-gradient(circle,rgba(126,136,157,.18) .75px,transparent .9px);background-size:15px 15px;padding:1.15rem .85rem;box-shadow:.8rem 0 2.8rem rgba(67,76,98,.08);backdrop-filter:blur(24px)}
+  .shell .product-brand{display:block;width:auto;height:auto;padding:0;background:transparent;box-shadow:none}
+  .shell .product-logo{width:auto;height:32px}
+  .shell .side-nav{position:absolute;top:50%;left:50%;width:auto;gap:.55rem;margin:0;transform:translate(-50%,-50%)}
+  .shell .side-nav::before{position:absolute;z-index:2;top:.325rem;left:-1.72rem;width:.38rem;height:2.7rem;border-radius:0 .4rem .4rem 0;background:#111214;box-shadow:.35rem 0 1rem rgba(17,18,20,.16);content:"";transition:transform 240ms cubic-bezier(.2,.8,.2,1)}
+  .shell .side-nav::after{display:none!important;content:none!important}
+  .shell .side-nav:has(.nav-link:nth-child(1).active)::before{transform:translateY(0)}
+  .shell .side-nav:has(.nav-link:nth-child(2).active)::before{transform:translateY(3.9rem)}
+  .shell .side-nav:has(.nav-link:nth-child(3).active)::before{transform:translateY(7.8rem)}
+  .shell .side-nav:has(.nav-link:nth-child(4).active)::before{transform:translateY(11.7rem)}
+  .shell .side-nav:has(.nav-link:nth-child(5).active)::before{transform:translateY(15.6rem)}
+  .shell .side-nav:has(.nav-link:nth-child(6).active)::before{transform:translateY(19.5rem)}
+  .shell .side-nav:has(.nav-link:nth-child(7).active)::before{transform:translateY(23.4rem)}
+  .shell .nav-link,.shell .user-avatar,.shell .signout-button.compact{position:relative;display:grid;width:3.35rem;height:3.35rem;min-height:3.35rem;place-items:center;align-self:center;gap:0;border:0;border-radius:1rem;background:rgba(255,255,255,.68);padding:0;color:#777e89;line-height:1;box-shadow:0 .4rem 1.1rem rgba(68,77,98,.07);transition:transform 160ms ease,background 160ms ease,color 160ms ease,box-shadow 160ms ease}
+  .shell .nav-link svg,.shell .user-avatar svg,.shell .signout-button.compact svg{display:block;width:1.05rem;height:1.05rem;stroke:currentColor;stroke-width:1.7}
+  .shell .nav-link>span{display:none}
+  .shell .nav-link:not(.active):hover,.shell .signout-button.compact:hover:not(:disabled){transform:translateY(-1px);background:#fff;color:#17181b;box-shadow:0 .65rem 1.5rem rgba(68,77,98,.13)}
+  .shell .nav-link.active{background:#111214;color:#fff;box-shadow:0 .8rem 1.8rem rgba(17,18,20,.26),0 0 0 .35rem rgba(255,255,255,.7)}
+  .shell .sidebar-foot{width:100%;grid-template-columns:1fr;justify-items:center;gap:.55rem;border:0;padding:0}
+  .shell .user-copy{display:none}
+  .shell .shell-content{margin-left:6.75rem}
+}
+
 /* Dashboard compact labelled filters */
 .dashboard-stage .dashboard-filters{align-items:center;gap:.45rem;border:1px solid rgba(255,255,255,.86);border-radius:999px;background:rgba(248,250,253,.76);padding:.55rem}
 .dashboard-filter-pill{position:relative;display:block;min-width:8.5rem;height:3rem;overflow:hidden;border:1px solid rgba(119,128,147,.24);border-radius:999px;background:transparent;color:#34373d;box-shadow:none}
