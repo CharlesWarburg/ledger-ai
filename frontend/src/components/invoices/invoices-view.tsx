@@ -101,7 +101,7 @@ export function InvoicesView() {
     catch (error) { setFormError(messageFrom(error)); } finally { setSaving(false); }
   }
 
-  return <>
+  return <div className="invoices-stage">
     <PageHeading actions={<button className="button" disabled={!customers.length} onClick={openCreate} type="button">Create invoice</button>} description="Create, send, and track every invoice." title="Invoices" />
     {!customers.length && !loading ? <div className="inline-notice">Add a customer before creating an invoice.</div> : null}
     <div className="invoice-toolbar">
@@ -131,5 +131,5 @@ export function InvoicesView() {
         <div className="form-section"><label className="form-control"><span>Notes</span><textarea defaultValue={selected?.notes ?? ""} maxLength={5000} name="notes" rows={4} /></label></div>{formError ? <p className="form-error">{formError}</p> : null}<div className="drawer-actions"><span /><div><button className="button secondary" onClick={selected ? () => openInvoice(selected) : close} type="button">Cancel</button><button className="button" disabled={saving} type="submit">{saving ? "Saving…" : selected ? "Save changes" : "Create invoice"}</button></div></div>
       </form>}
     </aside></div> : null}
-  </>;
+  </div>;
 }
