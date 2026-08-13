@@ -103,5 +103,32 @@ export function ReportsView() {
   const [report, setReport] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   async function preview() { try { setReport(await apiRequest<DashboardResponse>("/reports/monthly", { query: { year, month, currency } })); } catch (reason) { setError(err(reason)); } }
-  return <><PageHeading title="Reports" description="Preview and export your financial data." /><div className="report-controls"><input type="number" min={2000} max={2100} value={year} onChange={(event) => setYear(Number(event.target.value))} /><select value={month} onChange={(event) => setMonth(Number(event.target.value))}>{Array.from({ length: 12 }, (_, index) => <option value={index + 1} key={index}>{new Date(2020, index).toLocaleDateString("en-GB", { month: "long" })}</option>)}</select><select value={currency} onChange={(event) => setCurrency(event.target.value)}><option>GBP</option><option>USD</option><option>EUR</option></select><button className="button" onClick={preview}>Preview</button></div>{error ? <p className="form-error">{error}</p> : null}{report ? <section className="payment-summary"><article><span>Revenue</span><strong>{cash(report.kpis.total_revenue, currency)}</strong></article><article><span>Outstanding</span><strong>{cash(report.kpis.outstanding_amount, currency)}</strong></article><article><span>Overdue</span><strong>{cash(report.kpis.overdue_amount, currency)}</strong></article></section> : null}<div className="export-grid"><button onClick={() => void save("/reports/monthly.pdf", "monthly-report.pdf", { year, month, currency })}>Monthly report PDF <span>Download →</span></button><button onClick={() => void save("/reports/invoices.csv", "invoices.csv")}>Invoices CSV <span>Download →</span></button><button onClick={() => void save("/reports/payments.csv", "payments.csv")}>Payments CSV <span>Download →</span></button></div></>;
+  const periodName = new Date(2020, month - 1).toLocaleDateString("en-GB", { month: "long" });
+  return <div className="reports-stage">
+    <PageHeading title="Reports" description="Build a clear financial snapshot and take the underlying data with you." />
+    <section className="report-builder">
+      <div className="report-builder-heading"><div><span className="report-kicker"><i />Report builder</span><h2>Choose your reporting period</h2></div><small>Monthly financial summary</small></div>
+      <div className="report-controls">
+        <label><span>Year</span><input aria-label="Report year" type="number" min={2000} max={2100} value={year} onChange={(event) => setYear(Number(event.target.value))} /></label>
+        <label><span>Month</span><select aria-label="Report month" value={month} onChange={(event) => setMonth(Number(event.target.value))}>{Array.from({ length: 12 }, (_, index) => <option value={index + 1} key={index}>{new Date(2020, index).toLocaleDateString("en-GB", { month: "long" })}</option>)}</select></label>
+        <label><span>Currency</span><select aria-label="Report currency" value={currency} onChange={(event) => setCurrency(event.target.value)}><option>GBP</option><option>USD</option><option>EUR</option></select></label>
+        <button className="button" onClick={preview}>Preview report</button>
+      </div>
+      {error ? <p className="form-error">{error}</p> : null}
+    </section>
+
+    <section className={`report-preview${report ? " ready" : ""}`}>
+      <div className="report-preview-heading"><div><span className="report-kicker"><i />Preview</span><h2>{periodName} {year}</h2></div><span>{currency}</span></div>
+      {report ? <div className="report-metrics"><article><span>Revenue received</span><strong>{cash(report.kpis.total_revenue, currency)}</strong><small>For the selected month</small></article><article><span>Outstanding</span><strong>{cash(report.kpis.outstanding_amount, currency)}</strong><small>Open invoice balances</small></article><article><span>Overdue</span><strong>{cash(report.kpis.overdue_amount, currency)}</strong><small>Past their due dates</small></article><article><span>Paid invoices</span><strong>{report.kpis.paid_invoice_count}</strong><small>Completed in the period</small></article></div> : <div className="report-preview-empty"><span>01</span><div><strong>Your monthly snapshot will appear here</strong><small>Select a year, month and currency, then preview the report.</small></div></div>}
+    </section>
+
+    <section className="report-exports">
+      <div className="report-section-heading"><div><span className="report-kicker"><i />Exports</span><h2>Download your data</h2></div><small>Ready when you are</small></div>
+      <div className="export-grid">
+        <button className="pdf-export" onClick={() => void save("/reports/monthly.pdf", "monthly-report.pdf", { year, month, currency })}><span className="export-type">PDF</span><span><strong>Monthly financial report</strong><small>{periodName} {year} · {currency}</small></span><b>Download ↘</b></button>
+        <button className="invoice-export" onClick={() => void save("/reports/invoices.csv", "invoices.csv")}><span className="export-type">CSV</span><span><strong>Invoice data</strong><small>Complete invoice export</small></span><b>Download ↘</b></button>
+        <button className="payment-export" onClick={() => void save("/reports/payments.csv", "payments.csv")}><span className="export-type">CSV</span><span><strong>Payment data</strong><small>Complete payment export</small></span><b>Download ↘</b></button>
+      </div>
+    </section>
+  </div>;
 }
