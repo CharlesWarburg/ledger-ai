@@ -20,8 +20,8 @@ const emptyCustomer: CustomerCreate = {
   vat_number: "",
 };
 
-function initials(name: string): string {
-  return name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+function gradientIndex(name: string): number {
+  return Array.from(name).reduce((total, character) => total + character.charCodeAt(0), 0) % 8;
 }
 
 function valueOrNull(formData: FormData, key: string): string | null {
@@ -155,7 +155,7 @@ export function CustomersView() {
   const formValues = selected ?? emptyCustomer;
 
   return (
-    <>
+    <div className="customers-stage">
       <PageHeading
         actions={<button className="button" onClick={() => openPanel({ mode: "create" })} type="button">Add customer</button>}
         description="Manage the people and businesses you invoice."
@@ -184,7 +184,7 @@ export function CustomersView() {
           <div aria-hidden="true" className="customer-list-head"><span>Customer</span><span>Contact</span><span>Location</span><span>VAT number</span><span /></div>
           {filteredCustomers.map((customer) => (
             <button className="customer-row" key={customer.id} onClick={() => openPanel({ mode: "edit", customer })} type="button">
-              <span className="customer-identity"><span className="customer-avatar">{initials(customer.name)}</span><span><strong>{customer.name}</strong><small>Added {new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(customer.created_at))}</small></span></span>
+              <span className="customer-identity"><span aria-hidden="true" className={`customer-avatar gradient-${gradientIndex(customer.name)}`} /><span><strong>{customer.name}</strong><small>Added {new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(customer.created_at))}</small></span></span>
               <span className="customer-contact"><strong>{customer.email ?? "No email"}</strong><small>{customer.phone ?? "No phone"}</small></span>
               <span>{[customer.city, customer.country_code].filter(Boolean).join(", ") || "—"}</span>
               <span>{customer.vat_number ?? "—"}</span>
@@ -230,6 +230,6 @@ export function CustomersView() {
           </aside>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
