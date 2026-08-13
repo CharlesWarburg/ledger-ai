@@ -24,7 +24,7 @@ export function AppNav({ mobile = false }: { mobile?: boolean }) {
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
-          <Link aria-current={active ? "page" : undefined} className={active ? "nav-link active" : "nav-link"} href={item.href} key={item.href}>
+          <Link aria-current={active ? "page" : undefined} aria-label={item.label} className={active ? "nav-link active" : "nav-link"} href={item.href} key={item.href}>
             <AppIcon name={item.icon} />
             <span>{item.label}</span>
           </Link>

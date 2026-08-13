@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AppIcon } from "@/components/app/icons";
+
 export function LogoutButton({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -19,7 +21,7 @@ export function LogoutButton({ compact = false }: { compact?: boolean }) {
 
   return (
     <button aria-label="Sign out" className={compact ? "signout-button compact" : "signout-button"} disabled={pending} onClick={logout} type="button">
-      {pending ? "…" : compact ? "↗" : "Sign out"}
+      {pending ? "…" : compact ? <AppIcon name="logout" /> : "Sign out"}
     </button>
   );
 }

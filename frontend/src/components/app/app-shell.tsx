@@ -1,24 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import type { UserResponse } from "@/lib/api/types";
 import { LogoutButton } from "@/components/auth/logout-button";
 
 import { AppNav } from "./app-nav";
+import { AppIcon } from "./icons";
 
 export function AppShell({ children, user }: { children: ReactNode; user: UserResponse }) {
-  const initial = user.email.charAt(0).toUpperCase();
-
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Link className="product-brand" href="/dashboard">
-          <span className="product-mark">L</span>
-          <span>Ledger</span>
+        <Link aria-label="Ledger home" className="product-brand" href="/dashboard">
+          <Image alt="" className="product-logo" height={83} src="/ledger-mark.svg" width={64} />
         </Link>
         <AppNav />
         <div className="sidebar-foot">
-          <div className="user-avatar">{initial}</div>
+          <div aria-label="Settings" className="user-avatar" role="img"><AppIcon name="account" /></div>
           <div className="user-copy">
             <strong>{user.email}</strong>
             <span>{user.role} account</span>
@@ -29,11 +28,10 @@ export function AppShell({ children, user }: { children: ReactNode; user: UserRe
 
       <div className="shell-content">
         <header className="mobile-header">
-          <Link className="product-brand" href="/dashboard">
-            <span className="product-mark">L</span>
-            <span>Ledger</span>
+          <Link aria-label="Ledger home" className="product-brand" href="/dashboard">
+            <Image alt="" className="product-logo" height={83} src="/ledger-mark.svg" width={64} />
           </Link>
-          <div className="user-avatar">{initial}</div>
+          <div aria-label="Settings" className="user-avatar" role="img"><AppIcon name="account" /></div>
         </header>
         <main className="page-content">{children}</main>
         <AppNav mobile />
