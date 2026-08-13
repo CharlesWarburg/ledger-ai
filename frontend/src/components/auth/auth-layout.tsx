@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 interface AuthLayoutProps {
@@ -13,18 +14,23 @@ export function AuthLayout({ children, eyebrow, title, description }: AuthLayout
     <main className="auth-page">
       <section className="auth-intro">
         <Link className="brand" href="/">
-          <span className="brand-mark">L</span>
+          <Image alt="" className="auth-logo" height={83} src="/ledger-mark.svg" width={64} />
           <span>Ledger AI</span>
         </Link>
-        <div>
+        <div className="auth-intro-copy">
           <p className="eyebrow">A clearer view of your finances</p>
-          <h1>Accounting work, without the busywork.</h1>
+          <h1>Financial clarity, without the busywork.</h1>
           <p>
             Keep customers, invoices, payments, documents, and financial insight in
             one focused workspace.
           </p>
         </div>
-        <p className="auth-footnote">Built for small teams who want useful answers quickly.</p>
+        <div className="auth-product-preview" aria-hidden="true">
+          <div className="auth-preview-heading"><span>Financial control centre</span><i>Live</i></div>
+          <div className="auth-preview-metrics"><span><small>Received</small><strong>£24.8k</strong></span><span><small>Outstanding</small><strong>£8.4k</strong></span><span><small>Overdue</small><strong>£1.2k</strong></span></div>
+          <div className="auth-preview-chart">{[34,58,42,72,51,88,64,78].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}</div>
+        </div>
+        <p className="auth-footnote">Customers · Invoices · Payments · Intelligence</p>
       </section>
 
       <section className="auth-panel">
