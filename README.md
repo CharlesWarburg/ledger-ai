@@ -223,6 +223,7 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Shared balance-derived invoice status presentation
   - ✅ Currency-safe payment summaries
   - ✅ Dashboard mutation refresh and date-filter coordination
+  - ✅ Unified five-role typography system across workspace and authentication screens
   - ⬜ Responsive design polish
   - ⬜ Accessibility review
   - ⬜ Frontend integration testing

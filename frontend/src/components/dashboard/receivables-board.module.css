@@ -7,23 +7,23 @@
 }
 
 .board :global(.receivables-corner) { display: grid; grid-column: 1; grid-row: 1; align-content: center; gap: .12rem; padding: .4rem .6rem; color: #777e8a; }
-.board :global(.receivables-corner span) { font-size: .58rem; font-weight: 500; }
-.board :global(.receivables-corner small) { font-size: .48rem; }
-.board :global(.receivable-column-heading) { display: flex; grid-row: 1; align-items: center; justify-content: center; gap: .5rem; border-bottom: 1px dashed rgba(118,128,148,.26); color: #565d69; font-size: .62rem; font-weight: 500; }
-.board :global(.receivable-column-heading small) { display: grid; width: 1.4rem; height: 1.4rem; place-items: center; border-radius: .48rem; background: rgba(190,207,239,.68); color: #506489; font-size: .53rem; }
+.board :global(.receivables-corner span) { font-size: var(--type-body); font-weight: 500; }
+.board :global(.receivables-corner small) { font-size: var(--type-supporting); }
+.board :global(.receivable-column-heading) { display: flex; grid-row: 1; align-items: center; justify-content: center; gap: .5rem; border-bottom: 1px dashed rgba(118,128,148,.26); color: #565d69; font-size: var(--type-supporting); font-weight: 500; }
+.board :global(.receivable-column-heading small) { display: grid; width: 1.4rem; height: 1.4rem; place-items: center; border-radius: .48rem; background: rgba(190,207,239,.68); color: #506489; font-size: var(--type-supporting); }
 .board :global(.receivable-column-heading.overdue) { color: #98514c; }
 .board :global(.receivable-column-heading.overdue small) { background: rgba(241,183,178,.64); color: #944943; }
-.board :global(.receivable-row-heading) { display: flex; grid-column: 1; align-items: flex-start; justify-content: flex-end; border-right: 1px dashed rgba(118,128,148,.26); padding: .7rem .75rem 0 0; color: #8c929d; font-size: .54rem; white-space: nowrap; }
+.board :global(.receivable-row-heading) { display: flex; grid-column: 1; align-items: flex-start; justify-content: flex-end; border-right: 1px dashed rgba(118,128,148,.26); padding: .7rem .75rem 0 0; color: #8c929d; font-size: var(--type-supporting); white-space: nowrap; }
 .board :global(.receivables-grid) { position: relative; display: grid; grid-column: 2/6; grid-row: 2/6; grid-template-columns: repeat(4,minmax(10rem,1fr)); grid-template-rows: repeat(4,5.7rem); background-image: linear-gradient(to right,transparent calc(100% - 1px),rgba(118,128,148,.2) calc(100% - 1px)),linear-gradient(to bottom,transparent calc(100% - 1px),rgba(118,128,148,.17) calc(100% - 1px)); background-size: 25% 100%,100% 5.7rem; }
 .board :global(.receivable-card) { z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) auto; align-self: center; align-items: center; gap: .55rem; width: calc(100% - 1.2rem); min-height: 3.75rem; border: 1px solid rgba(255,255,255,.82); border-radius: 1rem; background: linear-gradient(145deg,rgba(224,233,250,.96),rgba(194,211,243,.92)); padding: .62rem .7rem; color: #303745; box-shadow: 0 .55rem 1.2rem rgba(75,91,126,.1),inset 0 1px 0 rgba(255,255,255,.72); transition: box-shadow 180ms ease,filter 180ms ease; }
 .board :global(.receivable-card:hover) { z-index: 2; filter: brightness(1.025); box-shadow: 0 .8rem 1.6rem rgba(75,91,126,.16),inset 0 1px 0 rgba(255,255,255,.82); }
 .board :global(.receivable-card.overdue) { background: linear-gradient(145deg,rgba(253,230,228,.98),rgba(247,200,197,.92)); }
 .board :global(.receivable-card > span) { display: grid; min-width: 0; gap: .16rem; }
 .board :global(.receivable-card strong), .board :global(.receivable-card small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.board :global(.receivable-card strong) { font-size: .62rem; font-weight: 500; }
-.board :global(.receivable-card small) { color: #78808d; font-size: .51rem; }
-.board :global(.receivable-card > b) { color: #354b77; font-size: .65rem; font-weight: 500; white-space: nowrap; }
+.board :global(.receivable-card strong) { font-size: var(--type-body); font-weight: 500; }
+.board :global(.receivable-card small) { color: #78808d; font-size: var(--type-supporting); }
+.board :global(.receivable-card > b) { color: #354b77; font-size: var(--type-body); font-weight: 500; white-space: nowrap; }
 .board :global(.receivable-card.overdue > b) { color: #984b46; }
-.board :global(.receivables-board-empty) { position: absolute; inset: 0; display: grid; place-items: center; color: #9399a4; font-size: .64rem; }
+.board :global(.receivables-board-empty) { position: absolute; inset: 0; display: grid; place-items: center; color: #9399a4; font-size: var(--type-body); }
 
 @media (max-width: 760px) { .board { min-width: 48rem; } }

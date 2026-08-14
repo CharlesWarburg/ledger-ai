@@ -1520,3 +1520,279 @@ button:disabled {
 .auth-panel{min-height:100vh;background:transparent;padding:clamp(1rem,3vw,2.5rem)}.auth-card{width:min(100%,31rem);border:1px solid rgba(255,255,255,.92);border-radius:1.9rem;background:rgba(248,250,253,.8);padding:clamp(1.5rem,4vw,2.4rem);box-shadow:0 1.8rem 4.5rem rgba(63,73,96,.13),inset 0 1px 0 #fff;backdrop-filter:blur(28px) saturate(115%)}.auth-card>.eyebrow{color:#838b97;font-size:.56rem;font-weight:500;letter-spacing:.1em}.auth-card h2{margin:.55rem 0 .65rem;color:#17191d;font-family:var(--font-sans);font-size:clamp(2rem,4vw,3rem);font-weight:500;letter-spacing:-.055em}.auth-card .muted-copy{color:#7c8490;font-size:.72rem;line-height:1.6}.auth-form{gap:1rem;margin-top:2rem}.auth-form .form-field{gap:.42rem}.auth-form .form-field label{color:#6f7783;font-size:.62rem;font-weight:400}.auth-form .label-row span{color:#969da7;font-size:.54rem}.auth-form .form-field input{min-height:3.35rem;border:1px solid rgba(124,134,152,.14);border-radius:1rem;background:rgba(235,239,246,.72);padding:.8rem .9rem;color:#30343b;font-size:.72rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}.auth-form .form-field input:focus{border-color:#9fb8e8;box-shadow:0 0 0 3px rgba(159,184,232,.16)}.auth-form .primary-button{min-height:3.25rem;border:0;border-radius:999px;background:#111214;color:#fff;font-size:.7rem;font-weight:500;box-shadow:0 .75rem 1.7rem rgba(17,18,20,.18)}.auth-form .primary-button:hover:not(:disabled){transform:translateY(-2px);background:#111214;box-shadow:0 1rem 2.1rem rgba(17,18,20,.22)}.auth-form .form-error{border-color:rgba(223,125,116,.3);border-radius:.9rem;background:rgba(251,228,225,.75);color:#98483f;font-size:.65rem}.auth-switch{margin-top:.5rem;color:#848c98;font-size:.64rem}.auth-switch a{color:#2e333a;font-weight:500;text-decoration:none}.auth-switch a:hover{text-decoration:underline;text-underline-offset:.18rem}
 @media(max-width:900px){.auth-page{grid-template-columns:1fr;overflow:auto}.auth-intro{min-height:auto;gap:2rem;padding:2rem}.auth-intro-copy{margin:3rem 0 0}.auth-intro h1{font-size:clamp(3.2rem,11vw,5rem)}.auth-product-preview{width:100%;transform:none}.auth-footnote{margin-top:0}.auth-panel{min-height:auto;padding:1rem 1rem 4rem}.auth-card{margin:0 auto}}
 @media(max-width:540px){.auth-intro{padding:1.3rem}.auth-intro-copy{margin-top:2rem}.auth-intro h1{font-size:3.35rem}.auth-product-preview{min-height:11rem}.auth-preview-metrics>span{padding:.6rem}.auth-preview-metrics strong{font-size:.82rem}.auth-panel{padding:0 .7rem 2rem}.auth-card{border-radius:1.5rem;padding:1.25rem}}
+
+/* Workspace typography system: page title, section title, body and supporting copy. */
+:root {
+  --type-page-title: clamp(2.8rem, 5vw, 4.5rem);
+  --type-section-title: 1.125rem;
+  --type-lead: 1rem;
+  --type-body: 0.875rem;
+  --type-supporting: 0.75rem;
+  --type-weight-regular: 400;
+  --type-weight-medium: 500;
+}
+
+.shell .page-content {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+.shell .page-content .page-heading h1 {
+  font-size: var(--type-page-title);
+  font-weight: var(--type-weight-medium);
+  letter-spacing: -0.06em;
+  line-height: 0.96;
+}
+
+.shell .page-content h2,
+.shell .page-content .panel-heading h2,
+.shell .page-content .section-heading h2,
+.shell .page-content .drawer-heading h2 {
+  font-size: var(--type-section-title);
+  font-weight: var(--type-weight-medium);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.shell .page-content h3,
+.shell .page-content p,
+.shell .page-content button,
+.shell .page-content input,
+.shell .page-content select,
+.shell .page-content textarea,
+.shell .page-content a,
+.shell .page-content label,
+.shell .page-content td {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+.shell .page-content small,
+.shell .page-content .kicker,
+.shell .page-content .eyebrow,
+.shell .page-content th,
+.shell .page-content label > span,
+.shell .page-content .invoice-list-head,
+.shell .page-content .payment-list-head,
+.shell .page-content .customer-list-head {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+/* Keep text inside feature-specific rows and cards on the same two body sizes. */
+.shell .page-content :is(
+  .customer-row,
+  .invoice-row,
+  .payment-row,
+  .document-card,
+  .document-summary,
+  .activity-list,
+  .attention-list,
+  .risk-grid,
+  .duplicate-list,
+  .export-grid,
+  .settings-card,
+  .invoice-detail
+) :is(strong, span, b) {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-medium);
+}
+
+.shell .page-content :is(
+  .customer-row,
+  .invoice-row,
+  .payment-row,
+  .document-card,
+  .document-summary,
+  .activity-list,
+  .attention-list,
+  .risk-grid,
+  .duplicate-list,
+  .export-grid,
+  .settings-card,
+  .invoice-detail
+) small,
+.shell .page-content :is(.status-badge, .risk-level, .customer-count, .section-copy) {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+/* Page descriptions and all workspace controls use the primary body size. */
+.shell .page-content .page-heading p,
+.shell .page-content .page-actions :is(button, input, select),
+.shell .page-content :is(.search-field, .form-control, .quick-fields, .report-controls, .settings-fields) :is(input, select, textarea) {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+  line-height: 1.45;
+}
+
+.shell .page-content .page-heading p {
+  font-size: var(--type-lead);
+  line-height: 1.55;
+}
+
+/* Navigation belongs to the supporting tier rather than defining another scale. */
+.shell :is(.side-nav, .mobile-nav, .sidebar-foot) :is(a, button, span, strong) {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+/* Authentication follows the same hierarchy while retaining its editorial hero. */
+.auth-page {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+.auth-intro h1 {
+  font-weight: var(--type-weight-medium);
+}
+
+.auth-card h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--type-weight-medium);
+  line-height: 1;
+}
+
+.auth-page :is(.brand, p, label, input, button, a) {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+.auth-page .auth-intro-copy > p:last-child {
+  font-size: var(--type-lead);
+  line-height: 1.65;
+}
+
+.auth-page .auth-card .muted-copy,
+.auth-page .auth-form :is(input, button) {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+.auth-page .auth-form :is(label, .label-row span) {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+.auth-page :is(.eyebrow, small, .auth-footnote, .label-row span) {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+/* Financial figures remain the sole display-text exception to the hierarchy. */
+.shell .page-content :is(.live-kpis, .payment-summary, .report-metrics, .intelligence-overview) article > strong,
+.shell .page-content .live-kpis a > strong {
+  font-weight: var(--type-weight-medium);
+}
+
+/* Dashboard widgets use the shared scale explicitly; no sub-12px text. */
+.dashboard-stage .dashboard-filter-pill > span,
+.dashboard-stage .kicker,
+.dashboard-stage .panel-heading > :is(small, a),
+.dashboard-stage .live-kpis small,
+.dashboard-stage .receipt-summary,
+.dashboard-stage .receipt-legend,
+.dashboard-stage .receipt-month small,
+.dashboard-stage .activity-list small,
+.dashboard-stage .recent-panel .activity-list small {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+.dashboard-stage .dashboard-filter-pill :is(select, input),
+.dashboard-stage .live-kpis > a > span,
+.dashboard-stage .receipt-cell b,
+.dashboard-stage .activity-list strong,
+.dashboard-stage .recent-panel .activity-list strong,
+.dashboard-stage .recent-panel .activity-list a > strong {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+.dashboard-stage .panel-heading h2 {
+  font-size: var(--type-section-title);
+  font-weight: var(--type-weight-medium);
+}
+
+/* Prevent feature cards from introducing undersized one-off span text. */
+.shell .page-content span {
+  font-size: inherit;
+}
+
+/* Page-specific supporting roles that sit outside semantic small/label markup. */
+.payments-stage .payment-summary small,
+.payments-stage .payment-row .capitalize,
+.documents-stage .document-card > i,
+.intelligence-stage :is(
+  .intelligence-kicker,
+  .briefing-columns section > span,
+  .forecast-month > span,
+  .forecast-legend,
+  .risk-level,
+  .duplicate-index
+),
+.intelligence-stage .intelligence-panel-heading > :is(small, a),
+.reports-stage :is(
+  .report-kicker,
+  .report-builder-heading > small,
+  .report-section-heading > small,
+  .report-preview-heading > span,
+  .export-type
+),
+.settings-stage :is(
+  .settings-index > span,
+  .settings-card-heading > i,
+  .settings-locked-row > i,
+  .settings-meta span
+) {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+.auth-page :is(.auth-preview-heading, .auth-preview-heading i) {
+  font-size: var(--type-supporting);
+  font-weight: var(--type-weight-regular);
+}
+
+/* Primary card and control copy uses the standard body role. */
+.customers-stage :is(.customer-count, .search-field input),
+.invoices-stage :is(.search-field input, .status-filters button),
+.payments-stage :is(.payment-summary span, .search-field input, .customer-count),
+.documents-stage :is(.document-card > strong, .document-summary strong, .section-copy),
+.intelligence-stage :is(
+  .briefing-placeholder p,
+  .briefing-columns p,
+  .intelligence-overview span,
+  .attention-list strong,
+  .attention-list > a > b,
+  .risk-grid strong,
+  .duplicate-list strong,
+  .duplicate-list b,
+  .intelligence-empty strong
+),
+.reports-stage :is(
+  .report-controls input,
+  .report-controls select,
+  .report-controls > .button,
+  .report-metrics span,
+  .report-preview-empty strong,
+  .export-grid strong,
+  .export-grid b
+),
+.settings-stage :is(
+  .settings-index a,
+  .settings-fields input,
+  .settings-locked-row strong,
+  .settings-meta strong,
+  .settings-session-action strong,
+  .settings-session-action .signout-button
+) {
+  font-size: var(--type-body);
+  font-weight: var(--type-weight-regular);
+}
+
+@media (max-width: 600px) {
+  :root {
+    --type-page-title: 2.65rem;
+  }
+}
