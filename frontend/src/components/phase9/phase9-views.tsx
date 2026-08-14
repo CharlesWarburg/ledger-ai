@@ -29,7 +29,6 @@ export function InsightsView() {
 
   useEffect(() => {
     let cancelled = false;
-    setSummary(null);
     Promise.all([
       apiRequest<DuplicateInvoiceInsightsResponse>("/insights/duplicates", { query: { currency } }),
       apiRequest<SlowPayerInsightsResponse>("/insights/slow-payers", { query: { currency } }),
@@ -52,7 +51,7 @@ export function InsightsView() {
   }
 
   return <div className="intelligence-stage">
-    <PageHeading actions={<label className="intelligence-currency"><span>Currency</span><select value={currency} onChange={(event) => setCurrency(event.target.value)}><option>GBP</option><option>USD</option><option>EUR</option></select></label>} title="Intelligence" description="Understand financial risk, patterns, and what needs attention." />
+    <PageHeading actions={<label className="intelligence-currency"><span>Currency</span><select value={currency} onChange={(event) => { setCurrency(event.target.value); setSummary(null); }}><option>GBP</option><option>USD</option><option>EUR</option></select></label>} title="Intelligence" description="Understand financial risk, patterns, and what needs attention." />
     {error ? <p className="form-error">{error}</p> : null}
 
     <section className="intelligence-briefing">
@@ -77,7 +76,7 @@ export function InsightsView() {
         <div className="intelligence-panel-heading"><div><span className="intelligence-kicker"><i />Priority</span><h2>Attention queue</h2></div><small>{attentionCount} items</small></div>
         <div className="attention-list">
           {data?.s.customers.slice(0, 4).map((customer) => <Link href="/invoices" key={customer.customer_id}><i className="attention-severity high" /><span><strong>{customer.customer_name}</strong><small>{customer.overdue_invoice_count} overdue · {customer.longest_days_overdue} days longest</small></span><b>{cash(customer.overdue_balance, currency)}</b></Link>)}
-          {data?.d.matches.slice(0, 3).map((match, index) => <Link href="/invoices" key={`${match.first_invoice_id}-${match.second_invoice_id}`}><i className="attention-severity warning" /><span><strong>Possible duplicate · {match.customer_name}</strong><small>{match.first_invoice_number} and {match.second_invoice_number}</small></span><b>{cash(match.total, match.currency)}</b></Link>)}
+          {data?.d.matches.slice(0, 3).map((match) => <Link href="/invoices" key={`${match.first_invoice_id}-${match.second_invoice_id}`}><i className="attention-severity warning" /><span><strong>Possible duplicate · {match.customer_name}</strong><small>{match.first_invoice_number} and {match.second_invoice_number}</small></span><b>{cash(match.total, match.currency)}</b></Link>)}
           {!attentionCount ? <div className="intelligence-empty"><strong>Nothing needs attention</strong><small>No slow payers or possible duplicates were found.</small></div> : null}
         </div>
       </article>

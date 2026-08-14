@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import type { CustomerResponse, InvoiceResponse, PaymentCreate, PaymentResponse } from "@/lib/api";
+import { effectiveInvoiceStatus, invoiceBalance, paymentsByInvoice } from "@/lib/financial";
 import { PageHeading } from "@/components/ui/page-heading";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -18,33 +19,34 @@ export function PaymentsView() {
   const [query, setQuery] = useState(""); const [selected, setSelected] = useState<PaymentResponse | null>(null);
   const [panel, setPanel] = useState<"create" | "edit" | null>(null); const [invoiceId, setInvoiceId] = useState("");
   const [saving, setSaving] = useState(false); const [formError, setFormError] = useState<string | null>(null); const [confirmDelete, setConfirmDelete] = useState(false);
+  const [currency, setCurrency] = useState("GBP");
 
-  const fetchAll = () => Promise.all([
-    apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100 } }),
-    apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100 } }),
+  const fetchAll = (selectedCurrency = currency) => Promise.all([
+    apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100, currency: selectedCurrency } }),
+    apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100, currency: selectedCurrency } }),
     apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } }),
   ]);
   function load() { setLoading(true); setError(null); fetchAll().then(([p,i,c]) => { setPayments(p); setInvoices(i); setCustomers(c); }).catch((reason) => setError(message(reason))).finally(() => setLoading(false)); }
-  useEffect(() => { let cancelled=false; fetchAll().then(([p,i,c]) => { if(!cancelled){setPayments(p);setInvoices(i);setCustomers(c);} }).catch((reason)=>{if(!cancelled)setError(message(reason));}).finally(()=>{if(!cancelled)setLoading(false);}); return()=>{cancelled=true;}; },[]);
+  useEffect(() => { let cancelled=false; Promise.all([apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100, currency } }),apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100, currency } }),apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } })]).then(([p,i,c]) => { if(!cancelled){setPayments(p);setInvoices(i);setCustomers(c);setError(null);} }).catch((reason)=>{if(!cancelled)setError(message(reason));}).finally(()=>{if(!cancelled)setLoading(false);}); return()=>{cancelled=true;}; },[currency]);
 
   const invoiceMap = useMemo(() => new Map(invoices.map((invoice) => [invoice.id, invoice])), [invoices]);
   const customerMap = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
-  const paidByInvoice = useMemo(() => { const map = new Map<string,number>(); payments.forEach((p)=>map.set(p.invoice_id,(map.get(p.invoice_id)??0)+Number(p.amount))); return map; },[payments]);
-  const outstanding = (invoice: InvoiceResponse) => Math.max(0, Number(invoice.total) - (paidByInvoice.get(invoice.id) ?? 0));
-  const payable = invoices.filter((invoice) => (invoice.status === "sent" || invoice.status === "overdue") && outstanding(invoice) > 0);
+  const paidByInvoice = useMemo(() => paymentsByInvoice(payments), [payments]);
+  const outstanding = (invoice: InvoiceResponse) => invoiceBalance(invoice, paidByInvoice.get(invoice.id) ?? 0);
+  const payable = invoices.filter((invoice) => { const status = effectiveInvoiceStatus(invoice, paidByInvoice.get(invoice.id) ?? 0); return (status === "sent" || status === "overdue") && outstanding(invoice) > 0 && invoice.status !== "paid"; });
   const visible = payments.filter((payment) => { const invoice=invoiceMap.get(payment.invoice_id); const customer=invoice ? customerMap.get(invoice.customer_id)?.name : ""; const needle=query.toLowerCase(); return !needle || payment.reference?.toLowerCase().includes(needle) || invoice?.invoice_number.toLowerCase().includes(needle) || customer?.toLowerCase().includes(needle); });
   const received = payments.reduce((sum,p)=>sum+Number(p.amount),0); const openBalance = invoices.reduce((sum,i)=>sum+outstanding(i),0);
 
   function openCreate() { setSelected(null); setInvoiceId(payable[0]?.id ?? ""); setPanel("create"); setFormError(null); setConfirmDelete(false); }
   function openEdit(payment: PaymentResponse) { setSelected(payment); setInvoiceId(payment.invoice_id); setPanel("edit"); setFormError(null); setConfirmDelete(false); }
-  async function refreshInvoices() { setInvoices(await apiRequest<InvoiceResponse[]>("/invoices", { query: { limit:100 } })); }
+  async function refreshInvoices() { setInvoices(await apiRequest<InvoiceResponse[]>("/invoices", { query: { limit:100, currency } })); }
   async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setSaving(true); setFormError(null); const data=new FormData(event.currentTarget); const body:PaymentCreate={amount:String(data.get("amount")),payment_date:String(data.get("payment_date")),payment_method:String(data.get("payment_method")),reference:String(data.get("reference")??"").trim()||null,notes:String(data.get("notes")??"").trim()||null}; try { const saved=selected?await apiRequest<PaymentResponse>(`/payments/${selected.id}`,{method:"PATCH",body}):await apiRequest<PaymentResponse>(`/invoices/${invoiceId}/payments`,{method:"POST",body}); setPayments((current)=>selected?current.map((p)=>p.id===saved.id?saved:p):[saved,...current]); await refreshInvoices(); setPanel(null); } catch(reason){setFormError(message(reason));} finally{setSaving(false);} }
   async function remove() { if(!selected)return; setSaving(true); try{await apiRequest<void>(`/payments/${selected.id}`,{method:"DELETE"});setPayments((current)=>current.filter((p)=>p.id!==selected.id));await refreshInvoices();setPanel(null);}catch(reason){setFormError(message(reason));}finally{setSaving(false);} }
   const activeInvoice=invoiceMap.get(invoiceId); const maxAmount=activeInvoice ? outstanding(activeInvoice)+(selected&&selected.invoice_id===activeInvoice.id?Number(selected.amount):0) : 0;
 
   return <div className="payments-stage">
-    <PageHeading actions={<button className="button" disabled={!payable.length} onClick={openCreate} type="button">Record payment</button>} description="Track money received and balances still due." title="Payments" />
-    <section className="payment-summary"><article><span>Total received</span><strong>{money(received)}</strong><small>{payments.length} recorded payments</small></article><article><span>Outstanding</span><strong>{money(openBalance)}</strong><small>Across {invoices.filter(i=>outstanding(i)>0).length} invoices</small></article><article><span>Payable invoices</span><strong>{payable.length}</strong><small>Sent or overdue</small></article></section>
+    <PageHeading actions={<><label className="intelligence-currency"><span>Currency</span><select value={currency} onChange={(event)=>{setLoading(true);setCurrency(event.target.value);}}><option>GBP</option><option>USD</option><option>EUR</option></select></label><button className="button" disabled={!payable.length} onClick={openCreate} type="button">Record payment</button></>} description="Track money received and balances still due." title="Payments" />
+    <section className="payment-summary"><article><span>Total received</span><strong>{money(received,currency)}</strong><small>{payments.length} recorded payments</small></article><article><span>Outstanding</span><strong>{money(openBalance,currency)}</strong><small>Across {invoices.filter(i=>outstanding(i)>0).length} invoices</small></article><article><span>Payable invoices</span><strong>{payable.length}</strong><small>Sent or overdue · {currency}</small></article></section>
     {!payable.length&&!loading?<div className="inline-notice">No sent or overdue invoices currently accept payments.</div>:null}
     <div className="customer-toolbar"><label className="search-field"><span>⌕</span><span className="sr-only">Search payments</span><input onChange={(e)=>setQuery(e.target.value)} placeholder="Search invoice, customer, or reference" type="search" value={query}/></label><span className="customer-count">{payments.length} payments</span></div>
     {loading?<div className="customer-list loading-list">{[1,2,3].map(v=><div className="customer-row skeleton-row" key={v}/>)}</div>:error?<div className="state-card error-state"><div className="state-icon">!</div><h2>Payments couldn’t load</h2><p>{error}</p><button className="button" onClick={load}>Try again</button></div>:payments.length===0?<div className="state-card"><div className="state-icon">+</div><h2>No payments recorded</h2><p>Mark an invoice as sent, then record full or partial payments here.</p>{payable.length?<button className="button" onClick={openCreate}>Record payment</button>:null}</div>:<div className="payment-list"><div className="payment-list-head"><span>Date</span><span>Invoice</span><span>Customer</span><span>Method</span><span>Reference</span><span>Amount</span><span/></div>{visible.map((payment)=>{const invoice=invoiceMap.get(payment.invoice_id);return <button className="payment-row" key={payment.id} onClick={()=>openEdit(payment)}><span>{payment.payment_date}</span><strong>{invoice?.invoice_number??"—"}</strong><span>{invoice?customerMap.get(invoice.customer_id)?.name:"—"}</span><span className="capitalize">{payment.payment_method}</span><span>{payment.reference??"—"}</span><strong>{money(payment.amount,invoice?.currency)}</strong><span className="row-arrow">›</span></button>})}</div>}

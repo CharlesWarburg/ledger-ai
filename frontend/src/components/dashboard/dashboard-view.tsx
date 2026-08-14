@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { apiRequest, ApiError } from "@/lib/api";
 import type { CustomerResponse, DashboardResponse, DocumentResponse, DocumentType, InvoiceCreate, InvoiceLineItemCreate, InvoiceResponse, InvoiceStatus, PaymentResponse } from "@/lib/api";
+import { effectiveInvoiceStatus, invoiceBalance, paymentsByInvoice } from "@/lib/financial";
 import { PageHeading } from "@/components/ui/page-heading";
 import styles from "./receivables-board.module.css";
 
@@ -33,11 +34,12 @@ export function DashboardView() {
   const [quickError, setQuickError] = useState<string | null>(null);
   const [quickLines, setQuickLines] = useState<QuickLine[]>([blankQuickLine(1)]);
   const [nextQuickLine, setNextQuickLine] = useState(2);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      apiRequest<DashboardResponse>("/dashboard", { query: { currency, months, invoice_status: status || undefined, customer_id: customer || undefined, date_from: from || undefined, date_to: to || undefined } }),
+      apiRequest<DashboardResponse>("/dashboard", { query: { currency, months, invoice_status: status || undefined, customer_id: customer || undefined, date_from: from && to ? from : undefined, date_to: from && to ? to : undefined } }),
       apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } }),
       apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100, currency, has_balance: true } }),
       apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100, currency } }),
@@ -45,20 +47,16 @@ export function DashboardView() {
       if (!cancelled) { setData(dashboard); setCustomers(customerData); setInvoices(invoiceData); setPayments(paymentData); setError(null); }
     }).catch((reason) => { if (!cancelled) setError(msg(reason)); }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [currency, months, status, customer, from, to]);
+  }, [currency, months, status, customer, from, to, refreshKey]);
 
   const maxCash = Math.max(1, ...(data?.monthly_cash_flow.map((point) => Number(point.amount)) ?? []));
   const active = useMemo(() => [status, customer, from, to].filter(Boolean).length, [status, customer, from, to]);
   const customerNames = useMemo(() => new Map(customers.map((item) => [item.id, item.name])), [customers]);
-  const paidByInvoice = useMemo(() => {
-    const values = new Map<string, number>();
-    payments.forEach((payment) => values.set(payment.invoice_id, (values.get(payment.invoice_id) ?? 0) + Number(payment.amount)));
-    return values;
-  }, [payments]);
+  const paidByInvoice = useMemo(() => paymentsByInvoice(payments), [payments]);
   const receivables = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    return invoices.filter((invoice) => (invoice.status === "sent" || invoice.status === "overdue") && (!status || invoice.status === status) && (!customer || invoice.customer_id === customer) && (!from || invoice.issue_date >= from) && (!to || invoice.issue_date <= to)).map((invoice) => {
-      const balance = Math.max(0, Number(invoice.total) - (paidByInvoice.get(invoice.id) ?? 0));
+    return invoices.filter((invoice) => { const effectiveStatus = effectiveInvoiceStatus(invoice, paidByInvoice.get(invoice.id) ?? 0); return (effectiveStatus === "sent" || effectiveStatus === "overdue") && (!status || effectiveStatus === status) && (!customer || invoice.customer_id === customer) && (!(from && to) || (invoice.issue_date >= from && invoice.issue_date <= to)); }).map((invoice) => {
+      const balance = invoiceBalance(invoice, paidByInvoice.get(invoice.id) ?? 0);
       const days = Math.round((new Date(`${invoice.due_date}T00:00:00`).getTime() - today.getTime()) / 86_400_000);
       const window = days < 0 ? "overdue" : days <= 7 ? "week" : days <= 30 ? "month" : "later";
       return { ...invoice, balance, days, window };
@@ -71,7 +69,7 @@ export function DashboardView() {
   const updateQuickLine = (key: number, field: keyof InvoiceLineItemCreate, value: string) => setQuickLines((lines) => lines.map((line) => line.key === key ? { ...line, [field]: value } : line));
   const addQuickLine = () => { setQuickLines((lines) => [...lines, blankQuickLine(nextQuickLine)]); setNextQuickLine((value) => value + 1); };
   async function submitQuickUpload(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setQuickBusy(true); setQuickError(null); try { await apiRequest<DocumentResponse>("/documents", { method: "POST", body: new FormData(event.currentTarget) }); setQuickAction(null); } catch (reason) { setQuickError(msg(reason)); } finally { setQuickBusy(false); } }
-  async function submitQuickInvoice(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setQuickBusy(true); setQuickError(null); const form = new FormData(event.currentTarget); const payload: InvoiceCreate = { customer_id: String(form.get("customer_id")), invoice_number: String(form.get("invoice_number")).trim(), issue_date: String(form.get("issue_date")), due_date: String(form.get("due_date")), currency: String(form.get("currency")).trim().toUpperCase(), notes: String(form.get("notes") ?? "").trim() || null, line_items: quickLines.map(({ description, quantity, unit_price, vat_rate }) => ({ description: description.trim(), quantity, unit_price, vat_rate })) }; try { await apiRequest<InvoiceResponse>("/invoices", { method: "POST", body: payload }); setQuickAction(null); } catch (reason) { setQuickError(msg(reason)); } finally { setQuickBusy(false); } }
+  async function submitQuickInvoice(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setQuickBusy(true); setQuickError(null); const form = new FormData(event.currentTarget); const payload: InvoiceCreate = { customer_id: String(form.get("customer_id")), invoice_number: String(form.get("invoice_number")).trim(), issue_date: String(form.get("issue_date")), due_date: String(form.get("due_date")), currency: String(form.get("currency")).trim().toUpperCase(), notes: String(form.get("notes") ?? "").trim() || null, line_items: quickLines.map(({ description, quantity, unit_price, vat_rate }) => ({ description: description.trim(), quantity, unit_price, vat_rate })) }; try { await apiRequest<InvoiceResponse>("/invoices", { method: "POST", body: payload }); setQuickAction(null); setRefreshKey((value) => value + 1); } catch (reason) { setQuickError(msg(reason)); } finally { setQuickBusy(false); } }
 
   return <div className="dashboard-stage">
     <PageHeading actions={<div className="dashboard-heading-actions"><button onClick={() => openQuickAction("upload")} type="button">Upload document</button><button className="dashboard-primary-action" onClick={() => openQuickAction("invoice")} type="button">New invoice <b>+</b></button></div>} description="A live view of money moving through your business." title="Financial control centre" />

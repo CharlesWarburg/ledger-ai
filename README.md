@@ -220,6 +220,9 @@ Legend: ✅ completed · 🚧 in progress · ⬜ not started
   - ✅ Executive summary
   - ✅ CSV and PDF report workflows
 - ⬜ Frontend Phase 10 — Quality and integration
+  - ✅ Shared balance-derived invoice status presentation
+  - ✅ Currency-safe payment summaries
+  - ✅ Dashboard mutation refresh and date-filter coordination
   - ⬜ Responsive design polish
   - ⬜ Accessibility review
   - ⬜ Frontend integration testing

@@ -3,14 +3,15 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { apiRequest, ApiError } from "@/lib/api";
-import type { CustomerResponse, InvoiceCreate, InvoiceLineItemCreate, InvoiceResponse, InvoiceStatus } from "@/lib/api";
+import type { CustomerResponse, InvoiceCreate, InvoiceLineItemCreate, InvoiceResponse, InvoiceStatus, PaymentResponse } from "@/lib/api";
+import { effectiveInvoiceStatus, invoiceBalance, paymentsByInvoice } from "@/lib/financial";
 import { PageHeading } from "@/components/ui/page-heading";
 
 type Mode = "view" | "edit" | "create";
 type LineDraft = InvoiceLineItemCreate & { key: number };
 
 const transitions: Record<InvoiceStatus, InvoiceStatus[]> = {
-  draft: ["sent", "cancelled"], sent: ["paid", "overdue", "cancelled"], overdue: ["paid", "cancelled"], paid: [], cancelled: [],
+  draft: ["sent", "cancelled"], sent: ["cancelled"], overdue: ["cancelled"], paid: [], cancelled: [],
 };
 const statusLabels: Record<InvoiceStatus, string> = { draft: "Draft", sent: "Sent", paid: "Paid", overdue: "Overdue", cancelled: "Cancelled" };
 const blankLine = (key: number): LineDraft => ({ key, description: "", quantity: "1", unit_price: "0", vat_rate: "20" });
@@ -24,6 +25,7 @@ function lineValues(line: LineDraft) { const subtotal = round(Number(line.quanti
 export function InvoicesView() {
   const [invoices, setInvoices] = useState<InvoiceResponse[]>([]);
   const [customers, setCustomers] = useState<CustomerResponse[]>([]);
+  const [payments, setPayments] = useState<PaymentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -41,25 +43,28 @@ export function InvoicesView() {
     Promise.all([
       apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100 } }),
       apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } }),
-    ]).then(([invoiceData, customerData]) => { setInvoices(invoiceData); setCustomers(customerData); })
+      apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100 } }),
+    ]).then(([invoiceData, customerData, paymentData]) => { setInvoices(invoiceData); setCustomers(customerData); setPayments(paymentData); })
       .catch((error: unknown) => setLoadError(messageFrom(error))).finally(() => setLoading(false));
   }
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100 } }), apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } })])
-      .then(([invoiceData, customerData]) => { if (!cancelled) { setInvoices(invoiceData); setCustomers(customerData); } })
+    Promise.all([apiRequest<InvoiceResponse[]>("/invoices", { query: { limit: 100 } }), apiRequest<CustomerResponse[]>("/customers", { query: { limit: 100 } }), apiRequest<PaymentResponse[]>("/payments", { query: { limit: 100 } })])
+      .then(([invoiceData, customerData, paymentData]) => { if (!cancelled) { setInvoices(invoiceData); setCustomers(customerData); setPayments(paymentData); } })
       .catch((error: unknown) => { if (!cancelled) setLoadError(messageFrom(error)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
   const customerById = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
+  const paidByInvoice = useMemo(() => paymentsByInvoice(payments), [payments]);
+  const displayStatus = (invoice: InvoiceResponse) => effectiveInvoiceStatus(invoice, paidByInvoice.get(invoice.id) ?? 0);
   const visible = useMemo(() => invoices.filter((invoice) => {
     const needle = query.trim().toLowerCase();
     const customer = customerById.get(invoice.customer_id)?.name ?? "";
-    return (status === "all" || invoice.status === status) && (!needle || invoice.invoice_number.toLowerCase().includes(needle) || customer.toLowerCase().includes(needle));
-  }), [invoices, query, status, customerById]);
+    return (status === "all" || effectiveInvoiceStatus(invoice, paidByInvoice.get(invoice.id) ?? 0) === status) && (!needle || invoice.invoice_number.toLowerCase().includes(needle) || customer.toLowerCase().includes(needle));
+  }), [invoices, query, status, customerById, paidByInvoice]);
   const totals = lines.reduce((sum, line) => { const value = lineValues(line); return { subtotal: sum.subtotal + value.subtotal, vat: sum.vat + value.vat, total: sum.total + value.total }; }, { subtotal: 0, vat: 0, total: 0 });
 
   function openCreate() { setSelected(null); setLines([blankLine(1)]); setNextKey(2); setMode("create"); setFormError(null); setConfirmDelete(false); }
@@ -112,15 +117,15 @@ export function InvoicesView() {
     : loadError ? <div className="state-card error-state"><div className="state-icon">!</div><h2>Invoices couldn’t load</h2><p>{loadError}</p><button className="button" onClick={load} type="button">Try again</button></div>
     : invoices.length === 0 ? <div className="state-card"><div className="state-icon">+</div><h2>Create your first invoice</h2><p>Add line items, VAT, dates, and customer details in one place.</p>{customers.length ? <button className="button" onClick={openCreate} type="button">Create invoice</button> : null}</div>
     : visible.length === 0 ? <div className="state-card small-state"><div className="state-icon">⌕</div><h2>No matching invoices</h2><p>Adjust your search or status filter.</p></div>
-    : <div className="invoice-list"><div className="invoice-list-head"><span>Invoice</span><span>Customer</span><span>Issued</span><span>Due</span><span>Status</span><span>Total</span><span /></div>{visible.map((invoice) => <button className="invoice-row" key={invoice.id} onClick={() => openInvoice(invoice)} type="button"><strong>{invoice.invoice_number}</strong><span>{customerById.get(invoice.customer_id)?.name ?? "Unknown customer"}</span><span>{invoice.issue_date}</span><span>{invoice.due_date}</span><span><i className={`status-badge ${invoice.status}`}>{statusLabels[invoice.status]}</i></span><strong>{money(invoice.total, invoice.currency)}</strong><span className="row-arrow">›</span></button>)}</div>}
+    : <div className="invoice-list"><div className="invoice-list-head"><span>Invoice</span><span>Customer</span><span>Issued</span><span>Due</span><span>Status</span><span>Total</span><span /></div>{visible.map((invoice) => { const currentStatus = displayStatus(invoice); return <button className="invoice-row" key={invoice.id} onClick={() => openInvoice(invoice)} type="button"><strong>{invoice.invoice_number}</strong><span>{customerById.get(invoice.customer_id)?.name ?? "Unknown customer"}</span><span>{invoice.issue_date}</span><span>{invoice.due_date}</span><span><i className={`status-badge ${currentStatus}`}>{statusLabels[currentStatus]}</i></span><strong>{money(invoice.total, invoice.currency)}</strong><span className="row-arrow">›</span></button>; })}</div>}
 
     {mode ? <div className="drawer-layer"><button aria-label="Close invoice panel" className="drawer-backdrop" disabled={saving} onClick={close} type="button" /><aside aria-modal="true" className="invoice-drawer" role="dialog">
       <div className="drawer-heading"><div><span className="kicker">{mode === "create" ? "New invoice" : mode === "edit" ? "Edit invoice" : "Invoice details"}</span><h2>{mode === "create" ? "Create invoice" : selected?.invoice_number}</h2></div><button aria-label="Close" className="icon-button" onClick={close} type="button">×</button></div>
       {mode === "view" && selected ? <div className="invoice-detail">
-        <div className="invoice-detail-top"><div><span>Bill to</span><strong>{customerById.get(selected.customer_id)?.name}</strong><small>{customerById.get(selected.customer_id)?.email ?? "No email"}</small></div><i className={`status-badge ${selected.status}`}>{statusLabels[selected.status]}</i></div>
+        <div className="invoice-detail-top"><div><span>Bill to</span><strong>{customerById.get(selected.customer_id)?.name}</strong><small>{customerById.get(selected.customer_id)?.email ?? "No email"}</small></div><i className={`status-badge ${displayStatus(selected)}`}>{statusLabels[displayStatus(selected)]}</i></div>
         <div className="invoice-meta"><div><span>Issued</span><strong>{selected.issue_date}</strong></div><div><span>Due</span><strong>{selected.due_date}</strong></div><div><span>Currency</span><strong>{selected.currency}</strong></div></div>
         <div className="detail-lines">{selected.line_items.map((line) => <div key={line.id}><span><strong>{line.description}</strong><small>{line.quantity} × {money(line.unit_price, selected.currency)} · {line.vat_rate}% VAT</small></span><strong>{money(line.total, selected.currency)}</strong></div>)}</div>
-        <div className="invoice-totals"><span>Subtotal <strong>{money(selected.subtotal, selected.currency)}</strong></span><span>VAT <strong>{money(selected.vat_total, selected.currency)}</strong></span><span className="grand-total">Total <strong>{money(selected.total, selected.currency)}</strong></span></div>
+        <div className="invoice-totals"><span>Subtotal <strong>{money(selected.subtotal, selected.currency)}</strong></span><span>VAT <strong>{money(selected.vat_total, selected.currency)}</strong></span><span>Paid <strong>{money(paidByInvoice.get(selected.id) ?? 0, selected.currency)}</strong></span><span className="grand-total">Balance due <strong>{money(invoiceBalance(selected, paidByInvoice.get(selected.id) ?? 0), selected.currency)}</strong></span></div>
         {selected.notes ? <div className="invoice-notes"><span>Notes</span><p>{selected.notes}</p></div> : null}
         {formError ? <p className="form-error">{formError}</p> : null}
         {confirmDelete ? <div className="delete-confirm"><p>Delete invoice <strong>{selected.invoice_number}</strong>?</p><div><button className="text-button" onClick={() => setConfirmDelete(false)} type="button">Cancel</button><button className="danger-button" disabled={saving} onClick={() => void deleteInvoice()} type="button">Delete invoice</button></div></div> : null}
